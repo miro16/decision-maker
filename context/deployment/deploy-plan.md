@@ -2,7 +2,7 @@
 
 Źródła: [context/foundation/infrastructure.md](../foundation/infrastructure.md) (platforma, ryzyka, operacje), [context/foundation/tech-stack.md](../foundation/tech-stack.md) (Astro 7 SSR, `@astrojs/cloudflare` 14, npm, GitHub Actions, auto-deploy-on-merge).
 
-Status: zaplanowany (2026-10-04), wykonanie nierozpoczęte.
+Status: w trakcie wykonania (2026-10-04), fazy 0–6 ukończone, Faza 7 w PR.
 
 ## Stan wyjściowy (zweryfikowany 2026-10-04)
 
@@ -162,12 +162,12 @@ Własna domena, osobny projekt Supabase dla preview, Cloudflare Access, custom S
 
 | Faza | Data | Wynik | Uwagi |
 |---|---|---|---|
-| 0. Wymagania wstępne | | | Account ID, project ref: |
-| 1. Przygotowanie repo | | | |
-| 2. Kontrola kont i sekretów | | | |
-| 3. Weryfikacja lokalna | | | |
-| 4. Ręczny deploy | | | URL: |
-| 5. Auth w Supabase | | | |
-| 6. Weryfikacja produkcji | | | |
+| 0. Wymagania wstępne | 2026-10-04 | OK | Account ID: `e363d8ddfb0cda2fac3be36413230334`, project ref: `basuknhuxhspqreugnzc` (eu-central-1; pierwszy projekt powstał w eu-west-1 i został zastąpiony). Node 24.19.0, gh 2.102.0 (fine-grained PAT: Contents/Workflows/Secrets/PR RW, Actions R). `supabase link` nie pytał o hasło. Repo zmienione na publiczne. |
+| 1. Przygotowanie repo | 2026-10-04 | OK | Commity `2eedc0e` (scaffold) i `887a6ee` (deploy prep) na `main`. Wrangler 4.147.0, `npm audit fix` → 0 podatności. `allowScripts` przypina wersje `workerd`, więc po każdym bumpie Wranglera: `npm install-scripts approve workerd`. |
+| 2. Kontrola kont i sekretów | 2026-10-04 | OK | Wrangler 4.147.0 zachował logowanie OAuth. |
+| 3. Weryfikacja lokalna | 2026-10-04 | OK | Preview: `/`, `/auth/signin`, `/auth/signup` 200, `/dashboard` 302 → `/auth/signin`, brak banera konfiguracji. |
+| 4. Ręczny deploy | 2026-10-04 | OK | URL: https://decision-maker.mmiro1.workers.dev (subdomena konta `mmiro1`). Wersja `c0751666-fa83-4ef3-8cf6-e0f1344ec21b`. KV `decision-maker-session` (`1dd4d62f0a6b4b9ab66054ee2558130d`) auto-provisioned, nie usuwać. Wrangler przeformatowuje `wrangler.jsonc` przy provisioningu, zmianę odrzucono. Sekrety `SUPABASE_URL`/`SUPABASE_KEY` ustawione, baner zniknął. |
+| 5. Auth w Supabase | 2026-10-04 | OK | Site URL `https://decision-maker.mmiro1.workers.dev`, Redirect URLs: `https://decision-maker.mmiro1.workers.dev/**`, `http://localhost:4321/**`. Confirm email włączone. |
+| 6. Weryfikacja produkcji | 2026-10-04 | OK | Rejestracja → mail → potwierdzenie → logowanie → `/dashboard` → wylogowanie. `wrangler tail`: 11 requestów, wszystkie `ok`, 0× 5xx, 0× 1102. CPU: śr. 11 ms, max 56 ms (`GET /auth/signup`, pierwsze wejście), `GET /` zalogowany 11 ms. 5 z 11 requestów przekracza próg p95 7 ms z Fazy 8. |
 | 7. Auto-deploy z CI | | | |
 | 8. Rollback i bramka CPU | | | CPU p95: |

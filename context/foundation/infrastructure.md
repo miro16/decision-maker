@@ -101,8 +101,8 @@ The team deployed on the Free plan because "at our traffic it's $0". Locally eve
 
 1. **Fix the deploy identity and toolchain.** Set `"name": "decision-maker"` in `wrangler.jsonc`, then run `npm install -D wrangler@latest` to get ≥4.144, which supports Worker Previews and clears the audit finding. Commands below use the project-local `npx wrangler`, since no global install is needed.
 2. **Authenticate and set production secrets.** Run `npx wrangler login`, then `npx wrangler secret put SUPABASE_URL` and `npx wrangler secret put SUPABASE_KEY`, using an EU-region Supabase project (e.g. Frankfurt).
-3. **Verify locally on workerd.** Run `npm run build`, then `npm run preview` (adapter v14 runs `astro preview` on workerd, so `wrangler dev` isn't needed). In a second terminal, run `npm run smoke` against `http://localhost:4321`.
-4. **Deploy.** Run `npx wrangler deploy`. The adapter's entrypoint and `./dist` assets come from `wrangler.jsonc`. Confirm the `*.workers.dev` URL, then run `BASE_URL=<url> npm run smoke`.
+3. **Verify locally on workerd.** Run `npm run build`, then `npm run preview` (adapter v14 runs `astro preview` on workerd, so `wrangler dev` isn't needed). Check `/`, `/auth/signin` and the `/dashboard` redirect by hand without signing up: local `.env` points at the production Supabase project. The full `npm run smoke` creates accounts and needs email confirmation off, so it runs only in CI against a local Supabase (or locally after `npx supabase start`).
+4. **Deploy.** Run `npx wrangler deploy`. The adapter's entrypoint and `./dist` assets come from `wrangler.jsonc`. Confirm the `*.workers.dev` URL, then do a read-only HTTP check (`/` returns 200, `/dashboard` returns 302) and one manual sign-up. Do not run `npm run smoke` against production.
 5. **Watch the first traffic.** Run `npx wrangler tail --format json`, and check CPU time per request in Observability to decide between the Free and Paid plans.
 
 ## Out of Scope
