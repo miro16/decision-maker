@@ -180,12 +180,12 @@ There are no decision rows to backfill. The migration is forward-only. `npx supa
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes
-- [x] 2.2 `npx astro check` passes
-- [x] 2.3 `npm run build` passes
-- [x] 2.4 `npm run smoke` passes, including the owner's title `Which laptop?`, its absence for a second account, rejection of a second title `Which city?`, and rejection of a blank title
+- [x] 2.1 `npm run lint` passes — a7ad27f
+- [x] 2.2 `npx astro check` passes — a7ad27f
+- [x] 2.3 `npm run build` passes — a7ad27f
+- [x] 2.4 `npm run smoke` passes, including the owner's title `Which laptop?`, its absence for a second account, rejection of a second title `Which city?`, and rejection of a blank title — a7ad27f
 
 #### Manual
 
-- [x] 2.5 In the browser, submitting `Which laptop?` shows that title and removes the create form
-- [ ] 2.6 A second account's dashboard does not show `Which laptop?`
+- [x] 2.5 In the browser, submitting `Which laptop?` shows that title and removes the create form — a7ad27f
+- [x] 2.6 A second account's dashboard does not show `Which laptop?` — a7ad27f
