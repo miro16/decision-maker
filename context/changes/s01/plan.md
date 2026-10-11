@@ -169,23 +169,23 @@ There are no decision rows to backfill. The migration is forward-only. `npx supa
 
 #### Automated
 
-- [x] 1.1 `npx supabase db reset` applies `supabase/migrations/*_create_decisions.sql` without error
+- [x] 1.1 `npx supabase db reset` applies `supabase/migrations/*_create_decisions.sql` without error — 6c8b31c
 
 #### Manual
 
-- [x] 1.2 Policies allow the owner to select and insert, and there is no update or delete policy
-- [x] 1.3 Inserting a second decision for the same `user_id` fails
+- [x] 1.2 Policies allow the owner to select and insert, and there is no update or delete policy — 6c8b31c
+- [x] 1.3 Inserting a second decision for the same `user_id` fails — 6c8b31c
 
 ### Phase 2: Dashboard create and show
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` passes
-- [ ] 2.2 `npx astro check` passes
-- [ ] 2.3 `npm run build` passes
-- [ ] 2.4 `npm run smoke` passes, including the owner's title `Which laptop?`, its absence for a second account, rejection of a second title `Which city?`, and rejection of a blank title
+- [x] 2.1 `npm run lint` passes
+- [x] 2.2 `npx astro check` passes
+- [x] 2.3 `npm run build` passes
+- [x] 2.4 `npm run smoke` passes, including the owner's title `Which laptop?`, its absence for a second account, rejection of a second title `Which city?`, and rejection of a blank title
 
 #### Manual
 
-- [ ] 2.5 In the browser, submitting `Which laptop?` shows that title and removes the create form
+- [x] 2.5 In the browser, submitting `Which laptop?` shows that title and removes the create form
 - [ ] 2.6 A second account's dashboard does not show `Which laptop?`

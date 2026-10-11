@@ -1,12 +1,32 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { createClient } from "@/lib/supabase";
 
 const { user } = Astro.locals;
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+const error = Astro.url.searchParams.get("error");
+
+let decisionTitle: string | null = null;
+let showForm = false;
+
+if (supabase && user) {
+  const { data, error: loadError } = await supabase
+    .from("decisions")
+    .select("title")
+    .eq("user_id", user.id)
+    .maybeSingle<{ title: string }>();
+
+  if (!loadError && data) {
+    decisionTitle = data.title;
+  } else if (!loadError) {
+    showForm = true;
+  }
+}
 ---
 
 <Layout title="Dashboard">
   <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
+    <div class="w-full max-w-sm rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
       <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
         Dashboard
       </h1>
@@ -14,6 +34,37 @@ const { user } = Astro.locals;
         Welcome, <span class="font-semibold text-white">{user?.email}</span>
       </p>
       <p class="mt-2 text-sm text-blue-100/50">This page is only for authenticated users.</p>
+      {decisionTitle !== null ? (
+        <p class="mt-6 text-xl font-semibold text-white">{decisionTitle}</p>
+      ) : (
+        showForm && (
+          <>
+            {error && (
+              <p class="mt-4 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300">
+                {error}
+              </p>
+            )}
+            <form method="POST" action="/api/decisions" class="mt-6 space-y-3">
+              <label for="decision-title" class="block text-sm text-blue-100/80">
+                Title
+              </label>
+              <input
+                id="decision-title"
+                type="text"
+                name="title"
+                maxlength="200"
+                class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white"
+              />
+              <button
+                type="submit"
+                class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
+              >
+                Create
+              </button>
+            </form>
+          </>
+        )
+      )}
       <form method="POST" action="/api/auth/signout" class="mt-6">
         <button
           type="submit"
