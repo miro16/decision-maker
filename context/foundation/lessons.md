@@ -30,3 +30,10 @@
 - **Problem**: pull_request_target REST run/artifact head identifies the candidate while the trusted record workflowSha identifies master; generic equality discards legitimate records and generic ancestry checks the wrong commit.
 - **Rule**: Bind execution and candidate identities separately using verified event-specific repository/PR/base metadata. Preserve exact attempt, artifact, merged head/base and baseline checks; reject stale event/live preparation races rather than substituting equivalent trees or an unbound payload SHA.
 - **Applies to**: research, plan, plan-review, implement, impl-review
+
+## Show a load failure instead of an empty dashboard
+
+- **Context**: src/pages/dashboard.astro:19
+- **Problem**: The select result is handled only for success. When loadError is set, both decisionTitle and showForm stay false, so the page shows the welcome line and sign-out with no title, no form, and no error. A failed read fails closed and gives the owner no explanation.
+- **Rule**:
+- **Applies to**:
