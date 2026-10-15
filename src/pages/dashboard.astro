@@ -8,6 +8,7 @@ const error = Astro.url.searchParams.get("error");
 
 let decisionTitle: string | null = null;
 let showForm = false;
+let loadErrorMessage: string | null = null;
 let options: { id: string; name: string }[] = [];
 let criteria: { id: string; name: string; weight: number }[] = [];
 
@@ -34,6 +35,8 @@ if (supabase && user) {
     criteria = criterionRows ?? [];
   } else if (!loadError) {
     showForm = true;
+  } else {
+    loadErrorMessage = "Could not load your decision";
   }
 }
 ---
@@ -192,6 +195,10 @@ if (supabase && user) {
             )}
           </section>
         </div>
+      ) : loadErrorMessage ? (
+        <p class="mt-4 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300">
+          {loadErrorMessage}
+        </p>
       ) : (
         showForm && (
           <form method="POST" action="/api/decisions" class="mt-6 space-y-3">
