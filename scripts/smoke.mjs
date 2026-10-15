@@ -39,6 +39,13 @@ async function request(path, { method = "GET", form, cookieJar = ownerJar } = {}
   return { status: response.status, location: response.headers.get("location") ?? "", body };
 }
 
+function hiddenIdAfter(body, marker) {
+  const from = body.indexOf(marker);
+  if (from === -1) return "";
+  const match = body.slice(from).match(/name="id"[^>]*value="([^"]+)"/);
+  return match?.[1] ?? "";
+}
+
 function locationMatches(actual, expected) {
   if (expected.location === undefined) return true;
   if (expected.exactLocation) return actual.location === expected.location;
@@ -48,7 +55,16 @@ function locationMatches(actual, expected) {
 function bodyMatches(actual, expected) {
   const includes = expected.bodyIncludes ?? [];
   const excludes = expected.bodyExcludes ?? [];
-  return includes.every((part) => actual.body.includes(part)) && excludes.every((part) => !actual.body.includes(part));
+  const order = expected.bodyOrder ?? [];
+  return (
+    includes.every((part) => actual.body.includes(part)) &&
+    excludes.every((part) => !actual.body.includes(part)) &&
+    order.every(([first, second]) => {
+      const a = actual.body.indexOf(first);
+      const b = actual.body.indexOf(second);
+      return a !== -1 && b !== -1 && a < b;
+    })
+  );
 }
 
 const steps = [
@@ -91,6 +107,41 @@ const steps = [
     { status: 200, bodyIncludes: ["Which laptop?"], bodyExcludes: ['name="title"'] },
   ],
   [
+    "blank option name is rejected",
+    () => request("/api/options", { method: "POST", form: { intent: "create", name: "" } }),
+    { status: 302, location: "/dashboard?error=" },
+  ],
+  [
+    "dashboard has no option after blank rejection",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["Which laptop?"], bodyExcludes: ["MacBook", "ThinkPad"] },
+  ],
+  [
+    "owner creates MacBook",
+    () => request("/api/options", { method: "POST", form: { intent: "create", name: "MacBook" } }),
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "owner creates Price at weight 3",
+    () => request("/api/criteria", { method: "POST", form: { intent: "create", name: "Price", weight: "3" } }),
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "owner dashboard shows MacBook and Price (3)",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["MacBook", "Price (3)"] },
+  ],
+  [
+    "owner creates Battery at weight 1",
+    () => request("/api/criteria", { method: "POST", form: { intent: "create", name: "Battery", weight: "1" } }),
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "owner dashboard keeps Price (3) before Battery (1)",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["MacBook", "Price (3)", "Battery (1)"], bodyOrder: [["Price (3)", "Battery (1)"]] },
+  ],
+  [
     "second account signs up",
     () => request("/api/auth/signup", { method: "POST", form: { email: otherEmail, password }, cookieJar: otherJar }),
     { status: 302, location: "/auth/confirm-email" },
@@ -103,7 +154,7 @@ const steps = [
   [
     "second account does not see Which laptop?",
     () => request("/dashboard", { cookieJar: otherJar }),
-    { status: 200, bodyExcludes: ["Which laptop?"] },
+    { status: 200, bodyExcludes: ["Which laptop?", "MacBook", "Price"] },
   ],
   [
     "second title is rejected",
@@ -113,7 +164,84 @@ const steps = [
   [
     "owner dashboard keeps Which laptop?",
     () => request("/dashboard"),
-    { status: 200, bodyIncludes: ["Which laptop?"], bodyExcludes: ["Which city?"] },
+    { status: 200, bodyIncludes: ["Which laptop?", "MacBook", "Price (3)"], bodyExcludes: ["Which city?"] },
+  ],
+  [
+    "duplicate macbook is rejected",
+    () => request("/api/options", { method: "POST", form: { intent: "create", name: "macbook" } }),
+    { status: 302, location: "/dashboard?error=" },
+  ],
+  [
+    "owner dashboard keeps MacBook after duplicate",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["MacBook"] },
+  ],
+  [
+    "weight 9 on Range is rejected",
+    () => request("/api/criteria", { method: "POST", form: { intent: "create", name: "Range", weight: "9" } }),
+    { status: 302, location: "/dashboard?error=" },
+  ],
+  [
+    "owner dashboard has no Range",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["Price (3)"], bodyExcludes: ["Range"] },
+  ],
+  [
+    "owner renames MacBook to ThinkPad",
+    async () => {
+      const page = await request("/dashboard");
+      return request("/api/options", {
+        method: "POST",
+        form: { intent: "update", id: hiddenIdAfter(page.body, "MacBook"), name: "ThinkPad" },
+      });
+    },
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "owner dashboard shows ThinkPad",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["ThinkPad"], bodyExcludes: ["MacBook"] },
+  ],
+  [
+    "owner deletes ThinkPad",
+    async () => {
+      const page = await request("/dashboard");
+      return request("/api/options", {
+        method: "POST",
+        form: { intent: "delete", id: hiddenIdAfter(page.body, "ThinkPad") },
+      });
+    },
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "owner dashboard no longer shows ThinkPad",
+    () => request("/dashboard"),
+    { status: 200, bodyExcludes: ["ThinkPad"] },
+  ],
+  [
+    "owner creates options N01 through N20",
+    async () => {
+      let last = { status: 0, location: "", body: "" };
+      for (let n = 1; n <= 20; n += 1) {
+        last = await request("/api/options", {
+          method: "POST",
+          form: { intent: "create", name: `N${String(n).padStart(2, "0")}` },
+        });
+        if (last.status !== 302 || last.location !== "/dashboard") return last;
+      }
+      return last;
+    },
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "21st option N21 is rejected",
+    () => request("/api/options", { method: "POST", form: { intent: "create", name: "N21" } }),
+    { status: 302, location: "/dashboard?error=" },
+  ],
+  [
+    "owner dashboard has N20 and not N21",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["N20"], bodyExcludes: ["N21"] },
   ],
   ["signout clears session", () => request("/api/auth/signout", { method: "POST" }), { status: 302, location: "/" }],
   ["dashboard redirects after signout", () => request("/dashboard"), { status: 302, location: "/auth/signin" }],

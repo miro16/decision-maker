@@ -180,23 +180,23 @@ There are no option or criterion rows to backfill. The migration is forward-only
 
 #### Automated
 
-- [x] 1.1 `npx supabase db reset` applies `supabase/migrations/*_create_options_and_criteria.sql` without error
+- [x] 1.1 `npx supabase db reset` applies `supabase/migrations/*_create_options_and_criteria.sql` without error — 938d69f
 
 #### Manual
 
-- [x] 1.2 Options and criteria allow the owner to select, insert, update, and delete, and `decisions` still has no update or delete policy
-- [x] 1.3 Inserting a 21st option for the same decision fails
-- [x] 1.4 Inserting a second option whose trimmed name matches an existing one regardless of case fails
-- [x] 1.5 Inserting a criterion with weight 0 or 6 fails
+- [x] 1.2 Options and criteria allow the owner to select, insert, update, and delete, and `decisions` still has no update or delete policy — 938d69f
+- [x] 1.3 Inserting a 21st option for the same decision fails — 938d69f
+- [x] 1.4 Inserting a second option whose trimmed name matches an existing one regardless of case fails — 938d69f
+- [x] 1.5 Inserting a criterion with weight 0 or 6 fails — 938d69f
 
 ### Phase 2: Dashboard lists
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` passes
-- [ ] 2.2 `npx astro check` passes
-- [ ] 2.3 `npm run build` passes
-- [ ] 2.4 `npm run smoke` passes, including the owner's `MacBook` and `Price (3)` before `Battery (1)`, their absence for a second account, rejection of a blank name, a duplicate `macbook`, weight `9` on `Range`, and a 21st option `N21`, plus rename to `ThinkPad` and a delete that removes it
+- [x] 2.1 `npm run lint` passes
+- [x] 2.2 `npx astro check` passes
+- [x] 2.3 `npm run build` passes
+- [x] 2.4 `npm run smoke` passes, including the owner's `MacBook` and `Price (3)` before `Battery (1)`, their absence for a second account, rejection of a blank name, a duplicate `macbook`, weight `9` on `Range`, and a 21st option `N21`, plus rename to `ThinkPad` and a delete that removes it
 
 #### Manual
 

@@ -8,16 +8,30 @@ const error = Astro.url.searchParams.get("error");
 
 let decisionTitle: string | null = null;
 let showForm = false;
+let options: { id: string; name: string }[] = [];
+let criteria: { id: string; name: string; weight: number }[] = [];
 
 if (supabase && user) {
   const { data, error: loadError } = await supabase
     .from("decisions")
-    .select("title")
+    .select("id, title")
     .eq("user_id", user.id)
-    .maybeSingle<{ title: string }>();
+    .maybeSingle<{ id: string; title: string }>();
 
   if (!loadError && data) {
     decisionTitle = data.title;
+
+    const [{ data: optionRows }, { data: criterionRows }] = await Promise.all([
+      supabase.from("options").select("id, name").eq("decision_id", data.id).order("position", { ascending: true }),
+      supabase
+        .from("criteria")
+        .select("id, name, weight")
+        .eq("decision_id", data.id)
+        .order("position", { ascending: true }),
+    ]);
+
+    options = optionRows ?? [];
+    criteria = criterionRows ?? [];
   } else if (!loadError) {
     showForm = true;
   }
@@ -34,35 +48,170 @@ if (supabase && user) {
         Welcome, <span class="font-semibold text-white">{user?.email}</span>
       </p>
       <p class="mt-2 text-sm text-blue-100/50">This page is only for authenticated users.</p>
+      {error && (
+        <p class="mt-4 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300">{error}</p>
+      )}
       {decisionTitle !== null ? (
-        <p class="mt-6 text-xl font-semibold text-white">{decisionTitle}</p>
+        <div class="mt-6 space-y-6 text-left">
+          <p class="text-center text-xl font-semibold text-white">{decisionTitle}</p>
+          <section class="space-y-3">
+            {options.map((option) => (
+              <div class="space-y-2 rounded-lg border border-white/10 p-3">
+                <p class="text-sm font-medium text-white">{option.name}</p>
+                <form method="POST" action="/api/options" class="space-y-2">
+                  <input type="hidden" name="intent" value="update" />
+                  <input type="hidden" name="id" value={option.id} />
+                  <label class="block text-xs text-blue-100/80">
+                    Name
+                    <input
+                      type="text"
+                      name="name"
+                      value={option.name}
+                      maxlength="200"
+                      class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs transition-colors hover:bg-white/20"
+                  >
+                    Save
+                  </button>
+                </form>
+                <form method="POST" action="/api/options">
+                  <input type="hidden" name="intent" value="delete" />
+                  <input type="hidden" name="id" value={option.id} />
+                  <button
+                    type="submit"
+                    class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs transition-colors hover:bg-white/20"
+                  >
+                    Delete
+                  </button>
+                </form>
+              </div>
+            ))}
+            {options.length < 20 && (
+              <form method="POST" action="/api/options" class="space-y-2">
+                <input type="hidden" name="intent" value="create" />
+                <label class="block text-sm text-blue-100/80">
+                  Option
+                  <input
+                    type="text"
+                    name="name"
+                    maxlength="200"
+                    class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
+                >
+                  Add option
+                </button>
+              </form>
+            )}
+          </section>
+          <section class="space-y-3">
+            {criteria.map((criterion) => (
+              <div class="space-y-2 rounded-lg border border-white/10 p-3">
+                <p class="text-sm font-medium text-white">
+                  {criterion.name} ({criterion.weight})
+                </p>
+                <form method="POST" action="/api/criteria" class="space-y-2">
+                  <input type="hidden" name="intent" value="update" />
+                  <input type="hidden" name="id" value={criterion.id} />
+                  <label class="block text-xs text-blue-100/80">
+                    Name
+                    <input
+                      type="text"
+                      name="name"
+                      value={criterion.name}
+                      maxlength="200"
+                      class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white"
+                    />
+                  </label>
+                  <label class="block text-xs text-blue-100/80">
+                    Weight
+                    <input
+                      type="number"
+                      name="weight"
+                      min="1"
+                      max="5"
+                      value={criterion.weight}
+                      class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs transition-colors hover:bg-white/20"
+                  >
+                    Save
+                  </button>
+                </form>
+                <form method="POST" action="/api/criteria">
+                  <input type="hidden" name="intent" value="delete" />
+                  <input type="hidden" name="id" value={criterion.id} />
+                  <button
+                    type="submit"
+                    class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs transition-colors hover:bg-white/20"
+                  >
+                    Delete
+                  </button>
+                </form>
+              </div>
+            ))}
+            {criteria.length < 20 && (
+              <form method="POST" action="/api/criteria" class="space-y-2">
+                <input type="hidden" name="intent" value="create" />
+                <label class="block text-sm text-blue-100/80">
+                  Criterion
+                  <input
+                    type="text"
+                    name="name"
+                    maxlength="200"
+                    class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white"
+                  />
+                </label>
+                <label class="block text-sm text-blue-100/80">
+                  Weight
+                  <input
+                    type="number"
+                    name="weight"
+                    min="1"
+                    max="5"
+                    class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
+                >
+                  Add criterion
+                </button>
+              </form>
+            )}
+          </section>
+        </div>
       ) : (
         showForm && (
-          <>
-            {error && (
-              <p class="mt-4 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300">
-                {error}
-              </p>
-            )}
-            <form method="POST" action="/api/decisions" class="mt-6 space-y-3">
-              <label for="decision-title" class="block text-sm text-blue-100/80">
-                Title
-              </label>
-              <input
-                id="decision-title"
-                type="text"
-                name="title"
-                maxlength="200"
-                class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white"
-              />
-              <button
-                type="submit"
-                class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
-              >
-                Create
-              </button>
-            </form>
-          </>
+          <form method="POST" action="/api/decisions" class="mt-6 space-y-3">
+            <label for="decision-title" class="block text-sm text-blue-100/80">
+              Title
+            </label>
+            <input
+              id="decision-title"
+              type="text"
+              name="title"
+              maxlength="200"
+              class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white"
+            />
+            <button
+              type="submit"
+              class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
+            >
+              Create
+            </button>
+          </form>
         )
       )}
       <form method="POST" action="/api/auth/signout" class="mt-6">
