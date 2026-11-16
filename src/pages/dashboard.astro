@@ -1,6 +1,8 @@
 ---
+import DecisionDashboard from "@/components/dashboard/DecisionDashboard.astro";
 import Layout from "@/layouts/Layout.astro";
 import { createClient } from "@/lib/supabase";
+import { rankOptions, type RankedOption } from "@/lib/weighted-sum";
 
 const { user } = Astro.locals;
 const supabase = createClient(Astro.request.headers, Astro.cookies);
@@ -11,6 +13,8 @@ let showForm = false;
 let loadErrorMessage: string | null = null;
 let options: { id: string; name: string }[] = [];
 let criteria: { id: string; name: string; weight: number }[] = [];
+let scores: { option_id: string; criterion_id: string; value: number }[] = [];
+let ranking: (RankedOption & { name: string })[] | null = null;
 
 if (supabase && user) {
   const { data, error: loadError } = await supabase
@@ -22,17 +26,56 @@ if (supabase && user) {
   if (!loadError && data) {
     decisionTitle = data.title;
 
-    const [{ data: optionRows }, { data: criterionRows }] = await Promise.all([
-      supabase.from("options").select("id, name").eq("decision_id", data.id).order("position", { ascending: true }),
-      supabase
-        .from("criteria")
-        .select("id, name, weight")
-        .eq("decision_id", data.id)
-        .order("position", { ascending: true }),
-    ]);
+    const [{ data: optionRows, error: optionError }, { data: criterionRows, error: criterionError }] =
+      await Promise.all([
+        supabase.from("options").select("id, name").eq("decision_id", data.id).order("position", { ascending: true }),
+        supabase
+          .from("criteria")
+          .select("id, name, weight")
+          .eq("decision_id", data.id)
+          .order("position", { ascending: true }),
+      ]);
 
-    options = optionRows ?? [];
-    criteria = criterionRows ?? [];
+    if (optionError || criterionError) {
+      loadErrorMessage = "Could not load your decision";
+    } else {
+      const loadedOptions: { id: string; name: string }[] = optionRows;
+      let loadedScores: { option_id: string; criterion_id: string; value: number }[] = [];
+      let scoreFailed = false;
+
+      if (loadedOptions.length > 0) {
+        const { data: scoreData, error: scoreError } = await supabase
+          .from("scores")
+          .select("option_id, criterion_id, value")
+          .in(
+            "option_id",
+            loadedOptions.map((option) => option.id),
+          );
+        if (scoreError) {
+          scoreFailed = true;
+        } else {
+          loadedScores = scoreData;
+        }
+      }
+
+      if (scoreFailed) {
+        loadErrorMessage = "Could not load your decision";
+      } else {
+        options = loadedOptions;
+        criteria = criterionRows;
+        scores = loadedScores;
+
+        const ranked = rankOptions(
+          options,
+          criteria,
+          scores.map((score) => ({ optionId: score.option_id, criterionId: score.criterion_id, value: score.value })),
+        );
+        if (ranked) {
+          const names = new Map(options.map((option) => [option.id, option.name]));
+          ranking = ranked.map((entry) => ({ ...entry, name: names.get(entry.optionId) ?? "" }));
+        }
+      }
+    }
   } else if (!loadError) {
     showForm = true;
   } else {
@@ -42,193 +85,15 @@ if (supabase && user) {
 ---
 
 <Layout title="Dashboard">
-  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="w-full max-w-sm rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
-      <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
-        Dashboard
-      </h1>
-      <p class="text-blue-100/80">
-        Welcome, <span class="font-semibold text-white">{user?.email}</span>
-      </p>
-      <p class="mt-2 text-sm text-blue-100/50">This page is only for authenticated users.</p>
-      {error && (
-        <p class="mt-4 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300">{error}</p>
-      )}
-      {decisionTitle !== null ? (
-        <div class="mt-6 space-y-6 text-left">
-          <p class="text-center text-xl font-semibold text-white">{decisionTitle}</p>
-          <section class="space-y-3">
-            {options.map((option) => (
-              <div class="space-y-2 rounded-lg border border-white/10 p-3">
-                <p class="text-sm font-medium text-white">{option.name}</p>
-                <form method="POST" action="/api/options" class="space-y-2">
-                  <input type="hidden" name="intent" value="update" />
-                  <input type="hidden" name="id" value={option.id} />
-                  <label class="block text-xs text-blue-100/80">
-                    Name
-                    <input
-                      type="text"
-                      name="name"
-                      value={option.name}
-                      maxlength="200"
-                      class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white"
-                    />
-                  </label>
-                  <button
-                    type="submit"
-                    class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs transition-colors hover:bg-white/20"
-                  >
-                    Save
-                  </button>
-                </form>
-                <form method="POST" action="/api/options">
-                  <input type="hidden" name="intent" value="delete" />
-                  <input type="hidden" name="id" value={option.id} />
-                  <button
-                    type="submit"
-                    class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs transition-colors hover:bg-white/20"
-                  >
-                    Delete
-                  </button>
-                </form>
-              </div>
-            ))}
-            {options.length < 20 && (
-              <form method="POST" action="/api/options" class="space-y-2">
-                <input type="hidden" name="intent" value="create" />
-                <label class="block text-sm text-blue-100/80">
-                  Option
-                  <input
-                    type="text"
-                    name="name"
-                    maxlength="200"
-                    class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white"
-                  />
-                </label>
-                <button
-                  type="submit"
-                  class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
-                >
-                  Add option
-                </button>
-              </form>
-            )}
-          </section>
-          <section class="space-y-3">
-            {criteria.map((criterion) => (
-              <div class="space-y-2 rounded-lg border border-white/10 p-3">
-                <p class="text-sm font-medium text-white">
-                  {criterion.name} ({criterion.weight})
-                </p>
-                <form method="POST" action="/api/criteria" class="space-y-2">
-                  <input type="hidden" name="intent" value="update" />
-                  <input type="hidden" name="id" value={criterion.id} />
-                  <label class="block text-xs text-blue-100/80">
-                    Name
-                    <input
-                      type="text"
-                      name="name"
-                      value={criterion.name}
-                      maxlength="200"
-                      class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white"
-                    />
-                  </label>
-                  <label class="block text-xs text-blue-100/80">
-                    Weight
-                    <input
-                      type="number"
-                      name="weight"
-                      min="1"
-                      max="5"
-                      value={criterion.weight}
-                      class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white"
-                    />
-                  </label>
-                  <button
-                    type="submit"
-                    class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs transition-colors hover:bg-white/20"
-                  >
-                    Save
-                  </button>
-                </form>
-                <form method="POST" action="/api/criteria">
-                  <input type="hidden" name="intent" value="delete" />
-                  <input type="hidden" name="id" value={criterion.id} />
-                  <button
-                    type="submit"
-                    class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs transition-colors hover:bg-white/20"
-                  >
-                    Delete
-                  </button>
-                </form>
-              </div>
-            ))}
-            {criteria.length < 20 && (
-              <form method="POST" action="/api/criteria" class="space-y-2">
-                <input type="hidden" name="intent" value="create" />
-                <label class="block text-sm text-blue-100/80">
-                  Criterion
-                  <input
-                    type="text"
-                    name="name"
-                    maxlength="200"
-                    class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white"
-                  />
-                </label>
-                <label class="block text-sm text-blue-100/80">
-                  Weight
-                  <input
-                    type="number"
-                    name="weight"
-                    min="1"
-                    max="5"
-                    class="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white"
-                  />
-                </label>
-                <button
-                  type="submit"
-                  class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
-                >
-                  Add criterion
-                </button>
-              </form>
-            )}
-          </section>
-        </div>
-      ) : loadErrorMessage ? (
-        <p class="mt-4 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300">
-          {loadErrorMessage}
-        </p>
-      ) : (
-        showForm && (
-          <form method="POST" action="/api/decisions" class="mt-6 space-y-3">
-            <label for="decision-title" class="block text-sm text-blue-100/80">
-              Title
-            </label>
-            <input
-              id="decision-title"
-              type="text"
-              name="title"
-              maxlength="200"
-              class="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white"
-            />
-            <button
-              type="submit"
-              class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
-            >
-              Create
-            </button>
-          </form>
-        )
-      )}
-      <form method="POST" action="/api/auth/signout" class="mt-6">
-        <button
-          type="submit"
-          class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
-        >
-          Sign out
-        </button>
-      </form>
-    </div>
-  </div>
+  <DecisionDashboard
+    email={user?.email ?? null}
+    error={error}
+    loadErrorMessage={loadErrorMessage}
+    showForm={showForm}
+    decisionTitle={decisionTitle}
+    options={options}
+    criteria={criteria}
+    scores={scores}
+    ranking={ranking}
+  />
 </Layout>

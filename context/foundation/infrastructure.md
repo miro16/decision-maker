@@ -96,6 +96,20 @@ The team deployed on the Free plan because "at our traffic it's $0". Locally eve
 | Worker name `10x-astro-starter` leaks into the URL, and renaming later creates a second Worker | Unknown unknowns | H | L | Set `"name": "decision-maker"` in `wrangler.jsonc` before the first deploy |
 | Auto-provisioned `SESSION` KV is unused, and deleting it blocks rollback | Devil's advocate | L | M | Set `session: false` in the adapter config if Astro sessions stay unused, or never delete bound KV |
 | An npm dependency fails at runtime because of a `nodejs_compat` stub | Devil's advocate | L | M | Run `npm run smoke` against `astro preview` (workerd) after every dependency change, as the CI smoke job already does |
+| Model suggestions (FR-011): any signed-in user can trigger paid model calls, so a script can run up the bill | Addendum 2026-11-16 | M | M | Require a session on the route, cap suggestions per request, set a hard spend limit at the provider, and decide a per-account rate limit (PRD Open Question 8) before production |
+| Model suggestions: decision titles leave the app and the provider may retain them | Addendum 2026-11-16 | M | M | Send only the owner's title and criteria names, choose a provider with a no-training / short-retention policy, and say so next to the button |
+| Model suggestions: provider outage, timeout or slow answer | Addendum 2026-11-16 | M | L | Time-box the call, return a short error, keep the rest of the dashboard working; never block decisions, options, criteria or ranking on the model |
+| Model suggestions: key leaks through a `PUBLIC_` variable, a client bundle or a log line | Addendum 2026-11-16 | L | H | Read the key only through `astro:env/server`, call the provider only from the API route, never log the key or the full prompt |
+
+## Addendum: language model dependency (2026-11-16)
+
+FR-011 (criterion suggestions) adds one outbound call from the Worker to a language model. This does not change the platform recommendation. It adds three operational facts.
+
+- **Secret or binding.** If the provider is an external HTTP API, its key is a Worker secret set with `npx wrangler secret put <NAME>` (human approval, same as the Supabase secrets) and declared in `astro.config.mjs` as `access: "secret"`, `optional: true`. Local values go in `.dev.vars`/`.env`. CI does not need it: build and smoke run without the key, and the route must answer "not configured" in that case. If the provider is a Cloudflare-hosted model, a binding in `wrangler.jsonc` replaces the key, and that file changes with the same care as the KV note above.
+- **Request budget.** Waiting for the model is I/O, not CPU, but the user waits for it. Time-box the call and show a short error on timeout. The Free-plan 10 ms CPU concern from the Risk Register still applies to the parsing and validation around the call, which must stay small (a short list of names, no streaming, no large prompts).
+- **Spend and abuse.** The route is behind sign-in, but any account can call it. A provider-side spend cap is the real backstop; an application-side per-account limit is PRD Open Question 8.
+
+No new Supabase table is needed for v1 (suggestions are not stored), so there is no new RLS surface for this addendum.
 
 ## Getting Started
 

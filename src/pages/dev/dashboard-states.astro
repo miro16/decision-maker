@@ -1,0 +1,146 @@
+---
+import DecisionDashboard from "@/components/dashboard/DecisionDashboard.astro";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Layout from "@/layouts/Layout.astro";
+
+const option = { id: "option-1", name: "MacBook" };
+const secondOption = { id: "option-2", name: "ThinkPad" };
+const criterion = { id: "criterion-1", name: "Price", weight: 3 };
+const secondCriterion = { id: "criterion-2", name: "Battery", weight: 1 };
+const filled = {
+  email: "owner@example.com",
+  error: null,
+  loadErrorMessage: null,
+  showForm: false,
+  decisionTitle: "Which laptop?",
+  options: [option],
+  criteria: [criterion],
+  scores: [],
+  ranking: null,
+};
+const scored = {
+  ...filled,
+  options: [option, secondOption],
+  criteria: [criterion, secondCriterion],
+};
+---
+
+<Layout title="Dashboard states">
+  <main class="space-y-12 bg-background px-4 py-8 text-foreground">
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Default</h2>
+      <DecisionDashboard {...filled} />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Hover</h2>
+      <p class="text-sm text-muted-foreground">Point at the field and at Save. The next cell has the same controls.</p>
+      <div class="flex max-w-sm flex-col gap-3">
+        <Input type="text" name="hover-name" value="MacBook" />
+        <Button type="button" variant="outline">
+          Save
+        </Button>
+      </div>
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Focus visible</h2>
+      <p class="text-sm text-muted-foreground">Tab to the field, then to the button. The ring uses the ring role.</p>
+      <div class="flex max-w-sm flex-col gap-3">
+        <Input type="text" name="focus-name" value="MacBook" />
+        <Button type="button" variant="outline">
+          Save
+        </Button>
+      </div>
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Disabled</h2>
+      <p class="text-sm text-muted-foreground">
+        The control is disabled and still readable. The live 20-row cap still omits the add form.
+      </p>
+      <Button type="button" disabled>
+        Save
+      </Button>
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Error</h2>
+      <DecisionDashboard {...filled} error="Could not save the option" />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Empty</h2>
+      <DecisionDashboard
+        email="owner@example.com"
+        error={null}
+        loadErrorMessage={null}
+        showForm={true}
+        decisionTitle={null}
+        options={[]}
+        criteria={[]}
+        scores={[]}
+        ranking={null}
+      />
+      <DecisionDashboard
+        email="owner@example.com"
+        error={null}
+        loadErrorMessage={null}
+        showForm={false}
+        decisionTitle="Which laptop?"
+        options={[]}
+        criteria={[]}
+        scores={[]}
+        ranking={null}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Ranking with a tie</h2>
+      <DecisionDashboard
+        {...scored}
+        scores={[
+          { option_id: "option-1", criterion_id: "criterion-1", value: 4 },
+          { option_id: "option-1", criterion_id: "criterion-2", value: 2 },
+          { option_id: "option-2", criterion_id: "criterion-1", value: 4 },
+          { option_id: "option-2", criterion_id: "criterion-2", value: 2 },
+        ]}
+        ranking={[
+          { optionId: "option-1", name: "MacBook", total: 14, missing: 0, rank: 1 },
+          { optionId: "option-2", name: "ThinkPad", total: 14, missing: 0, rank: 1 },
+        ]}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Ranking with an incomplete option</h2>
+      <DecisionDashboard
+        {...scored}
+        scores={[
+          { option_id: "option-1", criterion_id: "criterion-1", value: 4 },
+          { option_id: "option-1", criterion_id: "criterion-2", value: 2 },
+          { option_id: "option-2", criterion_id: "criterion-1", value: 2 },
+        ]}
+        ranking={[
+          { optionId: "option-1", name: "MacBook", total: 14, missing: 0, rank: 1 },
+          { optionId: "option-2", name: "ThinkPad", total: 6, missing: 1, rank: 2 },
+        ]}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">No scores yet</h2>
+      <DecisionDashboard {...scored} />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Score save error</h2>
+      <DecisionDashboard {...scored} error="Enter scores from 1 to 5" />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Loading</h2>
+      <p class="text-sm text-muted-foreground">
+        N/A. The dashboard HTML is rendered after the server read. There is no client loading interval.
+      </p>
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Logged out</h2>
+      <p class="text-sm text-muted-foreground">
+        N/A. A logged-out request for /dashboard redirects to /auth/signin in middleware, so this template does not
+        render for that request.
+      </p>
+    </section>
+  </main>
+</Layout>

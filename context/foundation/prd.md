@@ -53,10 +53,12 @@ V1: bez udostępniania decyzji między użytkownikami. Udostępnianie — v2.
 ### Secondary
 
 - Więcej niż jedna decyzja na konto.
+- Użytkownik dostaje od modelu językowego sugestie kryteriów dla swojej decyzji i dodaje wybrane (FR-011).
 
 ### Guardrails
 
 - Decyzje nie wyciekają między kontami.
+- Model językowy dostaje wyłącznie dane decyzji zalogowanego właściciela; jego awaria nie psuje reszty aplikacji.
 
 Blast radius: nie ma istniejącej aplikacji — nic produkcyjnego do zepsucia.
 
@@ -67,6 +69,20 @@ Blast radius: nie ma istniejącej aplikacji — nic produkcyjnego do zepsucia.
 - **Given** konto i jedna decyzja z opcjami, kryteriami z wagami i ocenami
 - **When** otwiera tę decyzję
 - **Then** widzi ranking z wyniku ważonego; nie widzi decyzji innych kont
+
+Uzupełnienie US-01 (2026-11-16, odpowiedzi użytkownika): oceny to liczby całkowite 1–5. Ranking pokazuje się, gdy istnieje choć jedna ocena; opcja z brakującymi ocenami jest oznaczona jako niekompletna, a jej wynik to suma istniejących ocen (brak oceny to nie 0). Opcje z równym wynikiem mają to samo miejsce i oznaczenie remisu.
+
+### US-02: Zalogowany użytkownik dostaje sugestie kryteriów od modelu
+
+- **Given** konto i decyzja „Który samochód kupić?”, w której nie ma jeszcze wszystkich kryteriów
+- **When** prosi o sugestie kryteriów
+- **Then** widzi listę propozycji (np. cena, przebieg, koszt utrzymania) bez tych, które już ma; może dodać wybraną propozycję, podając wagę 1–5; nic nie dodaje się samo, a gdy model jest niedostępny, reszta decyzji działa bez zmian
+
+### US-03: Zalogowany użytkownik rozstrzyga remis kołem fortuny
+
+- **Given** konto i decyzja, w której co najmniej dwie opcje mają równy, najwyższy wynik ważony i są w pełni ocenione
+- **When** kręci kołem fortuny
+- **Then** koło pokazuje tylko te opcje i losuje jedną z nich; ranking i wyniki się nie zmieniają, a wynik losowania jest wyraźnie oznaczony jako rozstrzygnięcie remisu
 
 # TODO: Acceptance Criteria — see Open Questions
 
@@ -92,6 +108,10 @@ Blast radius: nie ma istniejącej aplikacji — nic produkcyjnego do zepsucia.
   > Socrates: No counter-argument; it stands as written.
 - [new] FR-010: Admin może blokować lub usuwać konta. Priority: nice-to-have. Change: new
   > Socrates: No counter-argument; it stands as written.
+- [new] FR-011: Użytkownik może poprosić model językowy o sugestie kryteriów dla swojej decyzji (np. przy „Który samochód kupić?”: cena, przebieg, koszt utrzymania) i dodać wybrane do decyzji. Priority: nice-to-have. Change: new
+  > Socrates: Counter-argument considered: "Gotowe sugestie ograniczą własne myślenie, a model poda ogólniki." Resolution: kept; sugestie są opcjonalne, nic nie trafia do decyzji bez akcji użytkownika, a wagę zawsze ustawia użytkownik.
+- [new] FR-012: Gdy dwie lub więcej opcji ma równy wynik ważony na pierwszym miejscu rankingu, użytkownik może zakręcić kołem fortuny, które losuje jedną z tych opcji. Priority: nice-to-have. Change: new
+  > Socrates: Counter-argument considered: "Los zastępuje decyzję, a ranking miał ją uzasadniać." Resolution: kept; koło działa tylko przy realnym remisie, nie zmienia rankingu ani wyników, a losowanie jest wyraźnie oznaczone jako rozstrzygnięcie remisu.
 
 ## Constraints & Compatibility
 
@@ -103,10 +123,16 @@ Brak okien wdrożeń, istniejącego CI ani konsumentów API do zachowania.
 
 - Decyzje jednego konta nie pojawiają się u innego użytkownika.
 - Gdy oceny i wagi są uzupełnione, użytkownik widzi ranking bez osobnego, ręcznego przeliczania — ranking jest dostępny od razu po ich podaniu.
+- Sugestie kryteriów (FR-011) wymagają zewnętrznego dostawcy modelu językowego. Do dostawcy trafiają tylko dane decyzji zalogowanego właściciela (tytuł i nazwy jego kryteriów), nigdy dane innych kont. Klucz dostawcy jest sekretem serwera, nie wartością publiczną.
+- Awaria, brak konfiguracji albo limit modelu nie mogą blokować tworzenia decyzji, opcji, kryteriów ani rankingu. Sugestie są dodatkiem.
 
 ## Business Logic Changes
 
 Opcja z wyższym wynikiem ważonym (oceny × wagi kryteriów) stoi wyżej w rankingu.
+
+Oceny są liczbami całkowitymi 1–5. Przy brakujących ocenach ranking i tak się pokazuje: wynik opcji to suma (waga × ocena) po istniejących ocenach, a opcja jest oznaczona jako niekompletna. Opcje z równym wynikiem mają to samo miejsce i oznaczenie remisu. Remis na pierwszym miejscu między opcjami w pełni ocenionymi można rozstrzygnąć losowaniem (FR-012); losowanie nie zmienia wyników ani rankingu.
+
+Model językowy podpowiada wyłącznie nazwy kryteriów. Nie ustawia wag, nie ocenia opcji i nie wpływa na ranking. Podpowiedź staje się kryterium dopiero wtedy, gdy użytkownik ją doda z własną wagą 1–5; wtedy obowiązują te same reguły co dla kryterium dodanego ręcznie (nazwa 1–200 znaków, brak duplikatów bez względu na wielkość liter, najwyżej 20 kryteriów).
 
 Wejścia, które podaje użytkownik: opcje, kryteria z wagami, oceny opcji. Wyjście: jeden ranking. Użytkownik widzi go na decyzji, bez ręcznego liczenia.
 
@@ -129,6 +155,8 @@ Udostępnianie decyzji między użytkownikami nie wchodzi w v1.
 - Udostępnianie decyzji między użytkownikami — v1 ma prywatne decyzje per konto; sharing świadomie później.
 - Panel admina (blokada/usuwanie kont) — poza pierwszym etapem; FR-010 jest nice-to-have.
 - Więcej niż jedna decyzja na konto — poza must-have pierwszego etapu; FR-009 jest nice-to-have.
+- Model językowy poza sugerowaniem nazw kryteriów (FR-011): bez sugerowania opcji, wag i ocen, bez wskazywania zwycięzcy, bez czatu. Ranking liczy się wyłącznie z ocen i wag użytkownika.
+- Zapisywanie historii sugestii i uczenie modelu na decyzjach użytkowników — sugestie nie są przechowywane, a dane decyzji nie służą do trenowania.
 
 ## Open Questions
 
@@ -137,4 +165,9 @@ Udostępnianie decyzji między użytkownikami nie wchodzi w v1.
 3. **What is the current system's key architecture?** — there is no application; architecture was not named. TBD by user. Block: no.
 4. **What is the current system's tech stack?** — there is no application; stack was not named. TBD by user. Block: no.
 5. **Timeline: seed says ~2 h per week until 2026-12-06, frontmatter says delivery_weeks: 1.** — TBD by user. Block: no.
-6. **US-01 Acceptance Criteria** — Given/When/Then captured; detailed acceptance criteria were not listed. TBD by user. Block: no.
+6. **US-01 Acceptance Criteria** — Given/When/Then captured; skala ocen, ranking częściowy i remis uzupełnione 2026-11-16 (patrz uzupełnienie US-01); pozostałe szczegółowe kryteria nie zostały spisane. TBD by user. Block: no.
+7. **FR-011: który dostawca i model językowy?** — nie wybrano. Do rozstrzygnięcia: zewnętrzne API z kluczem (sekret Workera) czy model uruchamiany przez platformę Cloudflare (bez klucza, ale z bindingiem), koszt, polityka przechowywania danych przez dostawcę i działanie po polsku. TBD by user. Block: implementacja S-04 (nie blokuje planowania).
+8. **FR-011: limit użycia i koszt.** — kto i ile razy może prosić o sugestie (limit na konto / na godzinę), oraz twardy limit wydatków u dostawcy. TBD by user. Block: no.
+9. **FR-011: jakie dane trafiają do modelu?** — przyjęte: tytuł decyzji i nazwy istniejących kryteriów. Czy dodać nazwy opcji (lepsze sugestie, więcej danych poza aplikacją)? TBD by user. Block: no.
+10. **FR-011: język sugestii.** — przyjęte: język tytułu decyzji. Do potwierdzenia przy wybranym modelu. TBD by user. Block: no.
+11. **FR-012: zakres koła fortuny.** — przyjęte: koło tylko przy remisie na pierwszym miejscu, tylko między opcjami w pełni ocenionymi, losowanie po stronie przeglądarki, wynik nie jest zapisywany. Czy koło ma też działać dla remisu na niższych miejscach, i czy wynik losowania ma być zapamiętany? TBD by user. Block: no.

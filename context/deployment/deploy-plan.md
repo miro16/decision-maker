@@ -154,9 +154,20 @@ flowchart TD
 - Rollback przećwiczony. Wynik pomiaru CPU zapisany.
 - Ten plik uzupełniony o URL, datę i wyniki weryfikacji w sekcji "Dziennik wykonania". W `context/foundation/infrastructure.md` poprawione kroki 3 i 4 "Getting Started", czyli smoke tylko w CI.
 
+## Dodatek: model językowy dla sugestii kryteriów (FR-011, slice S-04)
+
+Dodane 2026-11-16. Nie zmienia Faz 0–8, tylko dopisuje jeden sekret i jedną kontrolę po wdrożeniu S-04. Dostawca modelu nie jest jeszcze wybrany (PRD, Open Question 7), więc nazwy poniżej są robocze.
+
+1. **Przed wdrożeniem S-04 (człowiek):** wybrać dostawcę i model, założyć klucz z twardym limitem wydatków po stronie dostawcy. Jeśli dostawca to model hostowany przez Cloudflare, zamiast klucza dochodzi binding w `wrangler.jsonc` i punkty 2–3 się zmieniają.
+2. **Sekret Workera (człowiek):** `npx wrangler secret put LLM_API_KEY`. Model (`LLM_MODEL`) jest zwykłą zmienną serwera, nie sekretem. Sekret działa od następnego requestu, bez redeployu.
+3. **Lokalnie:** `LLM_API_KEY` i `LLM_MODEL` w `.dev.vars` i `.env` (oba gitignored), wzór dopisać do `.env.example`. Nigdy wariant `PUBLIC_`.
+4. **CI:** bez zmian. Klucz jest `optional`, więc `npm run build` i `npm run smoke` działają bez niego. Smoke sprawdza tylko ścieżkę „model nieskonfigurowany” i brak dostępu bez sesji. Smoke nie woła prawdziwego modelu, bo kosztuje i bywa niestabilny.
+5. **Kontrola po wdrożeniu (człowiek klika, agent czyta logi):** zalogować się, otworzyć decyzję, użyć „Suggest criteria”, dodać jedną sugestię z wagą. `npx wrangler tail --format json` w trakcie: brak 5xx i brak 1102. Dopisać wynik do Dziennika wykonania.
+6. **Migracje:** brak. Sugestie nie są zapisywane, więc S-04 nie dotyka Supabase.
+
 ## Poza zakresem
 
-Własna domena, osobny projekt Supabase dla preview, Cloudflare Access, custom SMTP, migracje bazy (tabele decyzji powstaną przy implementacji FR-003 i dalszych).
+Własna domena, osobny projekt Supabase dla preview, Cloudflare Access, custom SMTP, migracje bazy (tabele decyzji powstaną przy implementacji FR-003 i dalszych). Limit użycia modelu na konto (PRD, Open Question 8), dopóki nie zostanie zdecydowany.
 
 ## Dziennik wykonania
 

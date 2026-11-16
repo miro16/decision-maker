@@ -29,6 +29,14 @@ There is no unit test framework yet. The only automated check is `scripts/smoke.
 - `npm run smoke`: auth-flow check against a running server (`BASE_URL`, default `http://localhost:4321`).
 - `npx supabase start`: local Supabase (needs Docker).
 
+## UI
+
+- Tokens live in `src/styles/global.css`: role values in `:root` and `.dark`, published through `@theme inline`. Do not write raw colours into `@theme inline`.
+- Shared components live in `src/components/ui`. Check that directory before creating a component. Add a missing one with `npx shadcn add <name>`.
+- No literal colours or arbitrary px/rem values in the dashboard view. Use role tokens (`bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `text-destructive`) and the components above. The view files are `src/pages/dashboard.astro`, `src/components/dashboard/DecisionDashboard.astro`, and `src/pages/dev/dashboard-states.astro`.
+- The state sink for that view is `/dev/dashboard-states`.
+- `scripts/scan-dashboard-literals.mjs` fails when those view files contain a literal. The pre-commit hook runs it.
+
 ## Coding Style
 
 - Merge Tailwind classes with `cn()` from @src/lib/utils.ts, not string concatenation.

@@ -27,6 +27,7 @@ The owner of `Which laptop?` adds the option `MacBook` and the criterion `Price`
 - A second decision for the same account (FR-009).
 - Sharing a decision, or an admin panel (FR-010).
 - A note or description on an option or a criterion.
+- Model-suggested criteria (FR-011, S-04 `ai-criteria-suggestions`). That slice reuses `POST /api/criteria` with `intent=create`, so the name, weight, duplicate, and 20-row rules in this plan apply to a suggested criterion unchanged.
 - Dragging rows into a new order.
 - Weights outside the integers 1–5, or weights that must sum to 100.
 - Renaming or deleting the decision title, or adding update or delete policies on `decisions`.
@@ -200,6 +201,6 @@ There are no option or criterion rows to backfill. The migration is forward-only
 
 #### Manual
 
-- [ ] 2.5 In the browser, under `Which laptop?`, adding `MacBook` and `Price` with weight 3 shows `MacBook` and `Price (3)` in insertion order, and the title form stays gone
-- [ ] 2.6 Renaming, changing the weight, and deleting update that list
-- [ ] 2.7 A second account's dashboard does not show `MacBook` or `Price`
+- [x] 2.5 In the browser, under `Which laptop?`, adding `MacBook` and `Price` with weight 3 shows `MacBook` and `Price (3)` in insertion order, and the title form stays gone — bcf44fd
+- [x] 2.6 Renaming, changing the weight, and deleting update that list — bcf44fd
+- [x] 2.7 A second account's dashboard does not show `MacBook` or `Price` — bcf44fd
