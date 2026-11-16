@@ -201,6 +201,6 @@ There are no option or criterion rows to backfill. The migration is forward-only
 
 #### Manual
 
-- [x] 2.5 In the browser, under `Which laptop?`, adding `MacBook` and `Price` with weight 3 shows `MacBook` and `Price (3)` in insertion order, and the title form stays gone
-- [x] 2.6 Renaming, changing the weight, and deleting update that list
-- [x] 2.7 A second account's dashboard does not show `MacBook` or `Price`
+- [x] 2.5 In the browser, under `Which laptop?`, adding `MacBook` and `Price` with weight 3 shows `MacBook` and `Price (3)` in insertion order, and the title form stays gone — bcf44fd
+- [x] 2.6 Renaming, changing the weight, and deleting update that list — bcf44fd
+- [x] 2.7 A second account's dashboard does not show `MacBook` or `Price` — bcf44fd
