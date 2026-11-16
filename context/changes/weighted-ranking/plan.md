@@ -232,17 +232,17 @@ S-02's manual rows 2.5, 2.6, and 2.7 are tracked in `context/changes/options-and
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes
-- [x] 2.2 `npx astro check` passes
-- [x] 2.3 `npm run build` passes
-- [x] 2.4 `node scripts/scan-dashboard-literals.mjs` reports `total: 0`
-- [x] 2.5 `npm run smoke` passes and covers a complete grid, a partial grid with the incomplete marker, a tie marker, rejected out-of-range scores, and a second account that sees none of it
+- [x] 2.1 `npm run lint` passes — 42ae828
+- [x] 2.2 `npx astro check` passes — 42ae828
+- [x] 2.3 `npm run build` passes — 42ae828
+- [x] 2.4 `node scripts/scan-dashboard-literals.mjs` reports `total: 0` — 42ae828
+- [x] 2.5 `npm run smoke` passes and covers a complete grid, a partial grid with the incomplete marker, a tie marker, rejected out-of-range scores, and a second account that sees none of it — 42ae828
 
 #### Manual
 
-- [x] 2.6 On a complete grid, the owner sees the higher weighted sum above the lower one, with weights left as stored integers 1–5 and with no normalization
-- [x] 2.7 With one score missing, that option is marked incomplete and its total is the sum of the scores that exist
-- [x] 2.8 Two equal totals show the same rank and a tie marker
-- [x] 2.9 Another account does not see those scores or that order
-- [x] 2.10 Deleting an option or a criterion that has scores still works and the ranking updates
-- [x] 2.11 `/dev/dashboard-states` shows the new states in light and dark, at desktop and mobile width
+- [x] 2.6 On a complete grid, the owner sees the higher weighted sum above the lower one, with weights left as stored integers 1–5 and with no normalization — 42ae828
+- [x] 2.7 With one score missing, that option is marked incomplete and its total is the sum of the scores that exist — 42ae828
+- [x] 2.8 Two equal totals show the same rank and a tie marker — 42ae828
+- [x] 2.9 Another account does not see those scores or that order — 42ae828
+- [x] 2.10 Deleting an option or a criterion that has scores still works and the ranking updates — 42ae828
+- [x] 2.11 `/dev/dashboard-states` shows the new states in light and dark, at desktop and mobile width — 42ae828

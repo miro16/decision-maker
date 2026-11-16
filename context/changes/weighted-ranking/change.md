@@ -1,7 +1,7 @@
 ---
 change_id: weighted-ranking
 title: User can score options and see the weighted ranking
-status: implementing
+status: implemented
 created: 2026-11-08
 updated: 2026-11-16
 archived_at: null
