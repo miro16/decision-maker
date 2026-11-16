@@ -40,6 +40,7 @@ Under `Which laptop?`, the owner sees `MacBook`, then `Price (3)` above a later 
 - Scores and the weighted ranking
 - A second decision, sharing, or an admin panel
 - Notes, drag-and-drop order, and weights that must sum to 100
+- Model-suggested criteria (S-04); they will be added through the same criteria endpoint and rules
 - Editing or deleting the decision title
 
 ## Architecture / Approach
