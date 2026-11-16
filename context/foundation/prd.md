@@ -104,7 +104,7 @@ Uzupełnienie US-01 (2026-11-16, odpowiedzi użytkownika): oceny to liczby całk
   > Socrates: No counter-argument; it stands as written.
 - [new] FR-008: Użytkownik nie widzi decyzji innych kont. Priority: must-have. Change: new
   > Socrates: No counter-argument; it stands as written.
-- [new] FR-009: Użytkownik może mieć więcej niż jedną decyzję. Priority: nice-to-have. Change: new
+- [new] FR-009: Użytkownik może mieć więcej niż jedną decyzję, wpisać własny tytuł (o czym decyduje), zmienić go i usunąć decyzję po potwierdzeniu. Priority: nice-to-have (realizowane od 2026-11-16 jako slice S-06 `multiple-decisions` na prośbę użytkownika). Change: new
   > Socrates: No counter-argument; it stands as written.
 - [new] FR-010: Admin może blokować lub usuwać konta. Priority: nice-to-have. Change: new
   > Socrates: No counter-argument; it stands as written.
@@ -154,7 +154,7 @@ Udostępnianie decyzji między użytkownikami nie wchodzi w v1.
 
 - Udostępnianie decyzji między użytkownikami — v1 ma prywatne decyzje per konto; sharing świadomie później.
 - Panel admina (blokada/usuwanie kont) — poza pierwszym etapem; FR-010 jest nice-to-have.
-- Więcej niż jedna decyzja na konto — poza must-have pierwszego etapu; FR-009 jest nice-to-have.
+- Więcej niż jedna decyzja na konto — poza must-have pierwszego etapu; FR-009 jest nice-to-have, ale od 2026-11-16 objęte slice'em S-06 (`multiple-decisions`).
 - Model językowy poza sugerowaniem nazw kryteriów (FR-011): bez sugerowania opcji, wag i ocen, bez wskazywania zwycięzcy, bez czatu. Ranking liczy się wyłącznie z ocen i wag użytkownika.
 - Zapisywanie historii sugestii i uczenie modelu na decyzjach użytkowników — sugestie nie są przechowywane, a dane decyzji nie służą do trenowania.
 

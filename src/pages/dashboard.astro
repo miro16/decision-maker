@@ -1,14 +1,22 @@
 ---
+import { z } from "zod";
 import DecisionDashboard from "@/components/dashboard/DecisionDashboard.astro";
 import Layout from "@/layouts/Layout.astro";
 import { createClient } from "@/lib/supabase";
 import { rankOptions, type RankedOption } from "@/lib/weighted-sum";
 
+const MAX_DECISIONS = 20;
+
 const { user } = Astro.locals;
 const supabase = createClient(Astro.request.headers, Astro.cookies);
-const error = Astro.url.searchParams.get("error");
+const urlError = Astro.url.searchParams.get("error");
+const requestedDecision = Astro.url.searchParams.get("decision");
 
+let error: string | null = urlError;
+let decisions: { id: string; title: string }[] = [];
+let decisionId: string | null = null;
 let decisionTitle: string | null = null;
+let confirmDelete = false;
 let showForm = false;
 let loadErrorMessage: string | null = null;
 let options: { id: string; name: string }[] = [];
@@ -17,69 +25,97 @@ let scores: { option_id: string; criterion_id: string; value: number }[] = [];
 let ranking: (RankedOption & { name: string })[] | null = null;
 
 if (supabase && user) {
-  const { data, error: loadError } = await supabase
+  const { data: decisionRows, error: loadError } = await supabase
     .from("decisions")
-    .select("id, title")
+    .select("id, title, created_at")
     .eq("user_id", user.id)
-    .maybeSingle<{ id: string; title: string }>();
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .overrideTypes<{ id: string; title: string; created_at: string }[], { merge: false }>();
 
-  if (!loadError && data) {
-    decisionTitle = data.title;
+  if (loadError) {
+    loadErrorMessage = "Could not load your decision";
+  } else {
+    decisions = decisionRows.map((row) => ({ id: row.id, title: row.title }));
+    showForm = decisions.length < MAX_DECISIONS;
 
-    const [{ data: optionRows, error: optionError }, { data: criterionRows, error: criterionError }] =
-      await Promise.all([
-        supabase.from("options").select("id, name").eq("decision_id", data.id).order("position", { ascending: true }),
-        supabase
-          .from("criteria")
-          .select("id, name, weight")
-          .eq("decision_id", data.id)
-          .order("position", { ascending: true }),
-      ]);
-
-    if (optionError || criterionError) {
-      loadErrorMessage = "Could not load your decision";
-    } else {
-      const loadedOptions: { id: string; name: string }[] = optionRows;
-      let loadedScores: { option_id: string; criterion_id: string; value: number }[] = [];
-      let scoreFailed = false;
-
-      if (loadedOptions.length > 0) {
-        const { data: scoreData, error: scoreError } = await supabase
-          .from("scores")
-          .select("option_id, criterion_id, value")
-          .in(
-            "option_id",
-            loadedOptions.map((option) => option.id),
-          );
-        if (scoreError) {
-          scoreFailed = true;
-        } else {
-          loadedScores = scoreData;
-        }
+    let current = decisions.at(0) ?? null;
+    let currentIsRequested = false;
+    if (requestedDecision !== null) {
+      const parsedId = z.uuid().safeParse(requestedDecision);
+      const match = parsedId.success ? decisions.find((row) => row.id === parsedId.data.toLowerCase()) : undefined;
+      if (match) {
+        current = match;
+        currentIsRequested = true;
+      } else {
+        error ??= "Decision not found";
       }
+    }
 
-      if (scoreFailed) {
+    if (current) {
+      decisionId = current.id;
+      decisionTitle = current.title;
+      confirmDelete = currentIsRequested && Astro.url.searchParams.get("confirm") === "delete";
+
+      const [{ data: optionRows, error: optionError }, { data: criterionRows, error: criterionError }] =
+        await Promise.all([
+          supabase
+            .from("options")
+            .select("id, name")
+            .eq("decision_id", current.id)
+            .order("position", { ascending: true }),
+          supabase
+            .from("criteria")
+            .select("id, name, weight")
+            .eq("decision_id", current.id)
+            .order("position", { ascending: true }),
+        ]);
+
+      if (optionError || criterionError) {
         loadErrorMessage = "Could not load your decision";
       } else {
-        options = loadedOptions;
-        criteria = criterionRows;
-        scores = loadedScores;
+        const loadedOptions: { id: string; name: string }[] = optionRows;
+        let loadedScores: { option_id: string; criterion_id: string; value: number }[] = [];
+        let scoreFailed = false;
 
-        const ranked = rankOptions(
-          options,
-          criteria,
-          scores.map((score) => ({ optionId: score.option_id, criterionId: score.criterion_id, value: score.value })),
-        );
-        if (ranked) {
-          const names = new Map(options.map((option) => [option.id, option.name]));
-          ranking = ranked.map((entry) => ({ ...entry, name: names.get(entry.optionId) ?? "" }));
+        if (loadedOptions.length > 0) {
+          const { data: scoreData, error: scoreError } = await supabase
+            .from("scores")
+            .select("option_id, criterion_id, value")
+            .in(
+              "option_id",
+              loadedOptions.map((option) => option.id),
+            );
+          if (scoreError) {
+            scoreFailed = true;
+          } else {
+            loadedScores = scoreData;
+          }
+        }
+
+        if (scoreFailed) {
+          loadErrorMessage = "Could not load your decision";
+        } else {
+          options = loadedOptions;
+          criteria = criterionRows;
+          scores = loadedScores;
+
+          const ranked = rankOptions(
+            options,
+            criteria,
+            scores.map((score) => ({
+              optionId: score.option_id,
+              criterionId: score.criterion_id,
+              value: score.value,
+            })),
+          );
+          if (ranked) {
+            const names = new Map(options.map((option) => [option.id, option.name]));
+            ranking = ranked.map((entry) => ({ ...entry, name: names.get(entry.optionId) ?? "" }));
+          }
         }
       }
     }
-  } else if (!loadError) {
-    showForm = true;
-  } else {
-    loadErrorMessage = "Could not load your decision";
   }
 }
 ---
@@ -90,7 +126,10 @@ if (supabase && user) {
     error={error}
     loadErrorMessage={loadErrorMessage}
     showForm={showForm}
+    decisions={decisions}
+    decisionId={decisionId}
     decisionTitle={decisionTitle}
+    confirmDelete={confirmDelete}
     options={options}
     criteria={criteria}
     scores={scores}

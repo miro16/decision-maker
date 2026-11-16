@@ -46,6 +46,8 @@ Przy wyborze z kilkoma opcjami i kryteriami o różnej wadze nie widać spójneg
 | S-03  | weighted-ranking              | ocenić opcje i zobaczyć ranking z wyniku ważonego         | S-02          | US-01, FR-006, FR-007, FR-008    | in-progress |
 | S-04  | ai-criteria-suggestions       | poprosić model o sugestie kryteriów i dodać wybrane       | S-02          | US-02, FR-011                    | planning |
 | S-05  | tie-breaker-wheel             | rozstrzygnąć remis na pierwszym miejscu kołem fortuny     | S-03          | US-03, FR-012                    | proposed |
+| S-06  | multiple-decisions            | mieć kilka własnych decyzji, nazwać je i usunąć           | S-03          | FR-009, FR-003                   | in-progress |
+| S-07  | futuristic-dashboard-ui       | widzieć dashboard w futurystycznym, ciemnym motywie neonowym | S-06       | (UI, bez nowego FR)              | proposed |
 
 ## Baseline
 
@@ -133,6 +135,32 @@ Brak osobnych fundamentów. Konto i hosting są w Baseline. Izolacja kont oraz z
 - **Risk:** losowanie bez oznaczenia mogłoby wyglądać jak wynik rankingu; koło musi być wyraźnie rozstrzygnięciem remisu i nie zmieniać wyników. Kolejność: po `S-03`, przed `S-04`.
 - **Status:** proposed
 
+### S-06: Wiele decyzji na konto
+
+- **Outcome:** użytkownik sam wpisuje, o czym decyduje, może mieć kilka decyzji, zmienić nazwę decyzji i ją usunąć (z potwierdzeniem)
+- **Change ID:** multiple-decisions
+- **PRD refs:** FR-009, FR-003
+- **Prerequisites:** S-03
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:**
+  - Jak wybierana jest bieżąca decyzja bez parametru w URL (przyjęte: ostatnio utworzona) oraz czy usunięcie wymaga wpisania nazwy. — Owner: user. Block: no.
+- **Risk:** zmiana dotyka migracji (zdjęcie unikalności `user_id` w `decisions`), wszystkich endpointów `/api/*` i dashboardu; zachować RLS per `auth.uid()` i kaskadowe usuwanie. Powód: na produkcji zostaje stara decyzja testowa „pizza”, której nie da się zmienić. Wyjęte z Parked 2026-11-16 na prośbę użytkownika.
+- **Status:** in-progress
+
+### S-07: Futurystyczny dashboard
+
+- **Outcome:** użytkownik widzi dashboard w ciemnym motywie neonowym (granat-czerń, akcent cyjan i fiolet, poświata przy focusie i kartach)
+- **Change ID:** futuristic-dashboard-ui
+- **PRD refs:** — (zmiana wizualna, bez nowego FR)
+- **Prerequisites:** S-06 (restyl obejmuje też listę i formularze decyzji)
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:**
+  - Czy dodać przełącznik motywu (przyjęte: nie, ciemny jako domyślny). — Owner: user. Block: no.
+- **Risk:** zmiana wartości tokenów w `global.css` dotyka każdej strony; kontrast sprawdzić w gate’cie (znany problem: `text-destructive` na `bg-destructive/10`). Tryb `/10x-ui`: audyt, plan, bramka screenshotowa, reguła w AGENTS.md.
+- **Status:** proposed
+
 ## Backlog Handoff
 
 | Roadmap ID | Change ID                     | Suggested issue title                                      | Ready for `/10x-plan` | Notes                                      |
@@ -142,6 +170,8 @@ Brak osobnych fundamentów. Konto i hosting są w Baseline. Izolacja kont oraz z
 | S-03       | weighted-ranking              | User can score options and see the weighted ranking        | no                    | Needs S-02 done; gwiazda przewodnia        |
 | S-04       | ai-criteria-suggestions       | User can get model-suggested criteria and add chosen ones  | no                    | Needs S-02 done; plan jest gotowy, implementacja czeka na wybór dostawcy modelu; robimy po S-05 |
 | S-05       | tie-breaker-wheel             | User can break a first-place tie with a wheel of fortune   | no                    | Needs S-03 done; potem `/10x-plan tie-breaker-wheel` |
+| S-06       | multiple-decisions            | User can create, rename and delete several decisions       | yes                   | Run `/10x-plan multiple-decisions`; robimy przed S-05 i S-04 (decyzja użytkownika 2026-11-16) |
+| S-07       | futuristic-dashboard-ui       | User sees the dashboard in a futuristic neon-dark theme    | no                    | Needs S-06 done; potem `/10x-ui futuristic-dashboard-ui` (research z briefem audytu) |
 
 ## Open Roadmap Questions
 
@@ -160,7 +190,7 @@ Brak osobnych fundamentów. Konto i hosting są w Baseline. Izolacja kont oraz z
 ## Parked
 
 - **Udostępnianie decyzji między użytkownikami** — Why parked: PRD §Non-Goals; v1 ma prywatne decyzje per konto.
-- **Więcej niż jedna decyzja na konto (FR-009)** — Why parked: nice-to-have, poza must-have pierwszego etapu.
+- ~~Więcej niż jedna decyzja na konto (FR-009)~~ — wyjęte z Parked 2026-11-16, patrz slice `S-06 multiple-decisions`.
 - **Panel admina / blokada i usuwanie kont (FR-010)** — Why parked: PRD §Non-Goals i nice-to-have; poza pierwszym etapem.
 - **Model językowy poza nazwami kryteriów (sugestie opcji, wag, ocen, wskazywanie zwycięzcy, czat)** — Why parked: PRD §Non-Goals; FR-011 obejmuje tylko nazwy kryteriów.
 - **Domknięcie auto-deploy po merge** — Why parked: cel `speed` i Worker już odpowiada; nie blokuje rankingu.

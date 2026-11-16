@@ -3,6 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+interface DecisionRow {
+  id: string;
+  title: string;
+}
 
 interface OptionRow {
   id: string;
@@ -34,14 +38,30 @@ interface Props {
   error: string | null;
   loadErrorMessage: string | null;
   showForm: boolean;
+  decisions: DecisionRow[];
+  decisionId: string | null;
   decisionTitle: string | null;
+  confirmDelete: boolean;
   options: OptionRow[];
   criteria: CriterionRow[];
   scores: ScoreRow[];
   ranking: RankingRow[] | null;
 }
 
-const { email, error, loadErrorMessage, showForm, decisionTitle, options, criteria, scores, ranking } = Astro.props;
+const {
+  email,
+  error,
+  loadErrorMessage,
+  showForm,
+  decisions,
+  decisionId,
+  decisionTitle,
+  confirmDelete,
+  options,
+  criteria,
+  scores,
+  ranking,
+} = Astro.props;
 
 const scoreValues = new Map(scores.map((score) => [`${score.option_id}:${score.criterion_id}`, score.value]));
 const rankCounts = new Map<number, number>();
@@ -49,6 +69,9 @@ for (const row of ranking ?? []) {
   rankCounts.set(row.rank, (rankCounts.get(row.rank) ?? 0) + 1);
 }
 const canScore = options.length > 0 && criteria.length > 0;
+const decisionHref = decisionId ? `/dashboard?decision=${encodeURIComponent(decisionId)}` : "/dashboard";
+const deleteHref = `${decisionHref}&confirm=delete`;
+const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ? singular : plural}`;
 ---
 
 <div class="flex min-h-screen justify-center bg-background px-4 py-8 text-foreground">
@@ -72,158 +95,229 @@ const canScore = options.length > 0 && criteria.length > 0;
         <p class="text-sm text-destructive" role="alert">
           {loadErrorMessage}
         </p>
-      ) : showForm ? (
-        <form method="POST" action="/api/decisions" class="space-y-3">
-          <p class="text-sm text-muted-foreground">Name the decision you want to make.</p>
-          <Label htmlFor="decision-title">Title</Label>
-          <Input id="decision-title" type="text" name="title" maxLength={200} />
-          <Button type="submit">Create</Button>
-        </form>
       ) : (
-        decisionTitle !== null && (
-          <div class="space-y-8">
-            <p class="text-xl font-semibold text-foreground">{decisionTitle}</p>
+        <div class="space-y-8">
+          {decisions.length > 0 && (
             <section class="space-y-3">
-              <h2 class="text-lg font-semibold text-foreground">Options</h2>
-              {options.length === 0 && <p class="text-sm text-muted-foreground">No options yet.</p>}
-              {options.map((option) => (
-                <div class="space-y-2 rounded-lg border border-border p-3">
-                  <p class="text-sm font-medium text-foreground">{option.name}</p>
-                  <form method="POST" action="/api/options" class="space-y-2">
-                    <input type="hidden" name="intent" value="update" />
-                    <input type="hidden" name="id" value={option.id} />
-                    <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                      Name
-                      <Input type="text" name="name" value={option.name} maxLength={200} />
-                    </Label>
-                    <Button type="submit" variant="outline" size="sm">
-                      Save
-                    </Button>
-                  </form>
-                  <form method="POST" action="/api/options">
-                    <input type="hidden" name="intent" value="delete" />
-                    <input type="hidden" name="id" value={option.id} />
-                    <Button type="submit" variant="destructive" size="sm">
-                      Delete
-                    </Button>
-                  </form>
-                </div>
-              ))}
-              {options.length < 20 && (
-                <form method="POST" action="/api/options" class="space-y-2">
-                  <input type="hidden" name="intent" value="create" />
-                  <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                    Option
-                    <Input type="text" name="name" maxLength={200} />
-                  </Label>
-                  <Button type="submit">Add option</Button>
-                </form>
-              )}
+              <h2 class="text-lg font-semibold text-foreground">Your decisions</h2>
+              <ul class="space-y-2">
+                {decisions.map((decision) => (
+                  <li>
+                    <a
+                      href={`/dashboard?decision=${encodeURIComponent(decision.id)}`}
+                      aria-current={decision.id === decisionId ? "page" : undefined}
+                      class:list={[
+                        "block rounded-md border border-border px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground",
+                        decision.id === decisionId && "bg-accent font-semibold text-accent-foreground",
+                      ]}
+                    >
+                      {decision.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </section>
-            <section class="space-y-3">
-              <h2 class="text-lg font-semibold text-foreground">Criteria</h2>
-              {criteria.length === 0 && <p class="text-sm text-muted-foreground">No criteria yet.</p>}
-              {criteria.map((criterion) => (
-                <div class="space-y-2 rounded-lg border border-border p-3">
-                  <p class="text-sm font-medium text-foreground">
-                    {criterion.name} ({criterion.weight})
-                  </p>
-                  <form method="POST" action="/api/criteria" class="space-y-2">
-                    <input type="hidden" name="intent" value="update" />
-                    <input type="hidden" name="id" value={criterion.id} />
+          )}
+          {showForm && (
+            <form method="POST" action="/api/decisions" class="space-y-3">
+              <input type="hidden" name="intent" value="create" />
+              <p class="text-sm text-muted-foreground">Name the decision you want to make.</p>
+              <Label htmlFor="decision-title">What are you deciding?</Label>
+              <Input id="decision-title" type="text" name="title" maxLength={200} />
+              <Button type="submit">Add decision</Button>
+            </form>
+          )}
+          {decisionTitle !== null && (
+            <div class="space-y-8">
+              <section class="space-y-3">
+                <div class="space-y-1">
+                  <p class="text-sm text-muted-foreground">Decision</p>
+                  <h2 class="text-xl font-semibold text-foreground">{decisionTitle}</h2>
+                </div>
+                <form method="POST" action="/api/decisions" class="space-y-2">
+                  <input type="hidden" name="intent" value="rename" />
+                  <input type="hidden" name="id" value={decisionId} />
+                  <Label htmlFor="decision-rename-title">Title</Label>
+                  <Input id="decision-rename-title" type="text" name="title" value={decisionTitle} maxLength={200} />
+                  <Button type="submit" variant="outline">
+                    Rename
+                  </Button>
+                </form>
+                {!confirmDelete && (
+                  <a href={deleteHref} class="inline-block text-sm text-destructive underline">
+                    Delete decision
+                  </a>
+                )}
+                {confirmDelete && (
+                  <div class="space-y-3 rounded-lg border border-destructive p-3">
+                    <p class="text-sm text-foreground">
+                      Deleting "{decisionTitle}" also deletes its {count(options.length, "option", "options")},{" "}
+                      {count(criteria.length, "criterion", "criteria")} and all scores. This cannot be undone.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-3">
+                      <form method="POST" action="/api/decisions">
+                        <input type="hidden" name="intent" value="delete" />
+                        <input type="hidden" name="id" value={decisionId} />
+                        <Button type="submit" variant="destructive">
+                          Delete permanently
+                        </Button>
+                      </form>
+                      <a href={decisionHref} class="text-sm text-foreground underline">
+                        Cancel
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </section>
+              <section class="space-y-3">
+                <h2 class="text-lg font-semibold text-foreground">Options</h2>
+                {options.length === 0 && <p class="text-sm text-muted-foreground">No options yet.</p>}
+                {options.map((option) => (
+                  <div class="space-y-2 rounded-lg border border-border p-3">
+                    <p class="text-sm font-medium text-foreground">{option.name}</p>
+                    <form method="POST" action="/api/options" class="space-y-2">
+                      <input type="hidden" name="decision_id" value={decisionId} />
+                      <input type="hidden" name="intent" value="update" />
+                      <input type="hidden" name="id" value={option.id} />
+                      <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+                        Name
+                        <Input type="text" name="name" value={option.name} maxLength={200} />
+                      </Label>
+                      <Button type="submit" variant="outline" size="sm">
+                        Save
+                      </Button>
+                    </form>
+                    <form method="POST" action="/api/options">
+                      <input type="hidden" name="decision_id" value={decisionId} />
+                      <input type="hidden" name="intent" value="delete" />
+                      <input type="hidden" name="id" value={option.id} />
+                      <Button type="submit" variant="destructive" size="sm">
+                        Delete
+                      </Button>
+                    </form>
+                  </div>
+                ))}
+                {options.length < 20 && (
+                  <form method="POST" action="/api/options" class="space-y-2">
+                    <input type="hidden" name="decision_id" value={decisionId} />
+                    <input type="hidden" name="intent" value="create" />
                     <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                      Name
-                      <Input type="text" name="name" value={criterion.name} maxLength={200} />
+                      Option
+                      <Input type="text" name="name" maxLength={200} />
+                    </Label>
+                    <Button type="submit">Add option</Button>
+                  </form>
+                )}
+              </section>
+              <section class="space-y-3">
+                <h2 class="text-lg font-semibold text-foreground">Criteria</h2>
+                {criteria.length === 0 && <p class="text-sm text-muted-foreground">No criteria yet.</p>}
+                {criteria.map((criterion) => (
+                  <div class="space-y-2 rounded-lg border border-border p-3">
+                    <p class="text-sm font-medium text-foreground">
+                      {criterion.name} ({criterion.weight})
+                    </p>
+                    <form method="POST" action="/api/criteria" class="space-y-2">
+                      <input type="hidden" name="decision_id" value={decisionId} />
+                      <input type="hidden" name="intent" value="update" />
+                      <input type="hidden" name="id" value={criterion.id} />
+                      <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+                        Name
+                        <Input type="text" name="name" value={criterion.name} maxLength={200} />
+                      </Label>
+                      <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+                        Weight
+                        <Input type="number" name="weight" min={1} max={5} value={criterion.weight} />
+                      </Label>
+                      <Button type="submit" variant="outline" size="sm">
+                        Save
+                      </Button>
+                    </form>
+                    <form method="POST" action="/api/criteria">
+                      <input type="hidden" name="decision_id" value={decisionId} />
+                      <input type="hidden" name="intent" value="delete" />
+                      <input type="hidden" name="id" value={criterion.id} />
+                      <Button type="submit" variant="destructive" size="sm">
+                        Delete
+                      </Button>
+                    </form>
+                  </div>
+                ))}
+                {criteria.length < 20 && (
+                  <form method="POST" action="/api/criteria" class="space-y-2">
+                    <input type="hidden" name="decision_id" value={decisionId} />
+                    <input type="hidden" name="intent" value="create" />
+                    <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+                      Criterion
+                      <Input type="text" name="name" maxLength={200} />
                     </Label>
                     <Label className="flex-col items-stretch gap-1 text-muted-foreground">
                       Weight
-                      <Input type="number" name="weight" min={1} max={5} value={criterion.weight} />
+                      <Input type="number" name="weight" min={1} max={5} />
                     </Label>
-                    <Button type="submit" variant="outline" size="sm">
-                      Save
-                    </Button>
+                    <Button type="submit">Add criterion</Button>
                   </form>
-                  <form method="POST" action="/api/criteria">
-                    <input type="hidden" name="intent" value="delete" />
-                    <input type="hidden" name="id" value={criterion.id} />
-                    <Button type="submit" variant="destructive" size="sm">
-                      Delete
-                    </Button>
-                  </form>
-                </div>
-              ))}
-              {criteria.length < 20 && (
-                <form method="POST" action="/api/criteria" class="space-y-2">
-                  <input type="hidden" name="intent" value="create" />
-                  <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                    Criterion
-                    <Input type="text" name="name" maxLength={200} />
-                  </Label>
-                  <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                    Weight
-                    <Input type="number" name="weight" min={1} max={5} />
-                  </Label>
-                  <Button type="submit">Add criterion</Button>
-                </form>
-              )}
-            </section>
-            {canScore && (
-              <section class="space-y-3">
-                <h2 class="text-lg font-semibold text-foreground">Scores</h2>
-                <p class="text-sm text-muted-foreground">
-                  Score each option from 1 to 5. Leave a field blank for no score.
-                </p>
-                {options.map((option) => (
-                  <form method="POST" action="/api/scores" class="space-y-2 rounded-lg border border-border p-3">
-                    <input type="hidden" name="option_id" value={option.id} />
-                    <p class="text-sm font-medium text-foreground">{option.name}</p>
-                    {criteria.map((criterion) => (
-                      <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                        {criterion.name} ({criterion.weight})
-                        <Input
-                          type="number"
-                          name={`score_${criterion.id}`}
-                          min={1}
-                          max={5}
-                          value={scoreValues.get(`${option.id}:${criterion.id}`) ?? ""}
-                        />
-                      </Label>
-                    ))}
-                    <Button type="submit" variant="outline" size="sm">
-                      Save scores
-                    </Button>
-                  </form>
-                ))}
-              </section>
-            )}
-            {canScore && (
-              <section class="space-y-3">
-                <h2 class="text-lg font-semibold text-foreground">Ranking</h2>
-                {ranking === null ? (
-                  <p class="text-sm text-muted-foreground">No scores yet.</p>
-                ) : (
-                  <ol class="space-y-2">
-                    {ranking.map((row) => (
-                      <li class="flex flex-wrap items-center gap-2 rounded-lg border border-border p-3 text-sm">
-                        <span class="font-semibold text-foreground">{row.rank}.</span>
-                        <span class="font-medium text-foreground">{row.name}</span>
-                        <span class="text-muted-foreground">Total {row.total}</span>
-                        {row.missing > 0 && (
-                          <span class="rounded-md border border-border px-2 py-0.5 text-muted-foreground">
-                            incomplete ({row.missing} missing)
-                          </span>
-                        )}
-                        {(rankCounts.get(row.rank) ?? 0) > 1 && (
-                          <span class="rounded-md border border-border px-2 py-0.5 text-muted-foreground">tie</span>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
                 )}
               </section>
-            )}
-          </div>
-        )
+              {canScore && (
+                <section class="space-y-3">
+                  <h2 class="text-lg font-semibold text-foreground">Scores</h2>
+                  <p class="text-sm text-muted-foreground">
+                    Score each option from 1 to 5. Leave a field blank for no score.
+                  </p>
+                  {options.map((option) => (
+                    <form method="POST" action="/api/scores" class="space-y-2 rounded-lg border border-border p-3">
+                      <input type="hidden" name="decision_id" value={decisionId} />
+                      <input type="hidden" name="option_id" value={option.id} />
+                      <p class="text-sm font-medium text-foreground">{option.name}</p>
+                      {criteria.map((criterion) => (
+                        <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+                          {criterion.name} ({criterion.weight})
+                          <Input
+                            type="number"
+                            name={`score_${criterion.id}`}
+                            min={1}
+                            max={5}
+                            value={scoreValues.get(`${option.id}:${criterion.id}`) ?? ""}
+                          />
+                        </Label>
+                      ))}
+                      <Button type="submit" variant="outline" size="sm">
+                        Save scores
+                      </Button>
+                    </form>
+                  ))}
+                </section>
+              )}
+              {canScore && (
+                <section class="space-y-3">
+                  <h2 class="text-lg font-semibold text-foreground">Ranking</h2>
+                  {ranking === null ? (
+                    <p class="text-sm text-muted-foreground">No scores yet.</p>
+                  ) : (
+                    <ol class="space-y-2">
+                      {ranking.map((row) => (
+                        <li class="flex flex-wrap items-center gap-2 rounded-lg border border-border p-3 text-sm">
+                          <span class="font-semibold text-foreground">{row.rank}.</span>
+                          <span class="font-medium text-foreground">{row.name}</span>
+                          <span class="text-muted-foreground">Total {row.total}</span>
+                          {row.missing > 0 && (
+                            <span class="rounded-md border border-border px-2 py-0.5 text-muted-foreground">
+                              incomplete ({row.missing} missing)
+                            </span>
+                          )}
+                          {(rankCounts.get(row.rank) ?? 0) > 1 && (
+                            <span class="rounded-md border border-border px-2 py-0.5 text-muted-foreground">tie</span>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </section>
+              )}
+            </div>
+          )}
+        </div>
       )}
     </CardContent>
     <CardFooter>
