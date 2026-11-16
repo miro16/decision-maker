@@ -236,15 +236,14 @@ The migration only drops a constraint and adds an index and two policies; it del
 
 #### Automated
 
-- [x] 2.1 Linting passes: `npm run lint`
-- [x] 2.2 Type check passes with 0 errors: `npx astro check`
-- [x] 2.3 Build passes: `npm run build`
-- [x] 2.4 No literal colours or arbitrary values in the dashboard view files: `node scripts/scan-dashboard-literals.mjs`
-- [x] 2.5 Smoke passes with the selection, fallback, confirmation and delete steps: `npm run smoke`
-
+- [x] 2.1 Linting passes: `npm run lint` — 8af1a2b
+- [x] 2.2 Type check passes with 0 errors: `npx astro check` — 8af1a2b
+- [x] 2.3 Build passes: `npm run build` — 8af1a2b
+- [x] 2.4 No literal colours or arbitrary values in the dashboard view files: `node scripts/scan-dashboard-literals.mjs` — 8af1a2b
+- [x] 2.5 Smoke passes with the selection, fallback, confirmation and delete steps: `npm run smoke` — 8af1a2b
 #### Manual
 
-- [x] 2.6 Two decisions with titles typed by the user: opening each shows only its own options, criteria, scores and ranking.
-- [x] 2.7 Rename changes the title in the list and in the heading, and a blank title shows an error and changes nothing.
-- [x] 2.8 Delete shows the confirmation with counts; Cancel changes nothing; "Delete permanently" removes the decision and lands on the newest remaining one; deleting the last decision shows the add form.
-- [x] 2.9 `/dev/dashboard-states` shows the new states and has no horizontal overflow at desktop and one mobile width.
+- [x] 2.6 Two decisions with titles typed by the user: opening each shows only its own options, criteria, scores and ranking. — 8af1a2b
+- [x] 2.7 Rename changes the title in the list and in the heading, and a blank title shows an error and changes nothing. — 8af1a2b
+- [x] 2.8 Delete shows the confirmation with counts; Cancel changes nothing; "Delete permanently" removes the decision and lands on the newest remaining one; deleting the last decision shows the add form. — 8af1a2b
+- [x] 2.9 `/dev/dashboard-states` shows the new states and has no horizontal overflow at desktop and one mobile width. — 8af1a2b

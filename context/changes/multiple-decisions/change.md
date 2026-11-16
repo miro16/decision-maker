@@ -1,7 +1,7 @@
 ---
 change_id: multiple-decisions
 title: Several decisions per account, titled by the user
-status: implementing
+status: implemented
 created: 2026-11-16
 updated: 2026-11-16
 archived_at: null
