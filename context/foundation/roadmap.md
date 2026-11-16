@@ -46,7 +46,7 @@ Przy wyborze z kilkoma opcjami i kryteriami o różnej wadze nie widać spójneg
 | S-03  | weighted-ranking              | ocenić opcje i zobaczyć ranking z wyniku ważonego         | S-02          | US-01, FR-006, FR-007, FR-008    | in-progress |
 | S-04  | ai-criteria-suggestions       | poprosić model o sugestie kryteriów i dodać wybrane       | S-02          | US-02, FR-011                    | planning |
 | S-05  | tie-breaker-wheel             | rozstrzygnąć remis na pierwszym miejscu kołem fortuny     | S-03          | US-03, FR-012                    | proposed |
-| S-06  | multiple-decisions            | mieć kilka własnych decyzji, nazwać je i usunąć           | S-03          | FR-009, FR-003                   | planning |
+| S-06  | multiple-decisions            | mieć kilka własnych decyzji, nazwać je i usunąć           | S-03          | FR-009, FR-003                   | in-progress |
 | S-07  | futuristic-dashboard-ui       | widzieć dashboard w futurystycznym, ciemnym motywie neonowym | S-06       | (UI, bez nowego FR)              | proposed |
 
 ## Baseline
@@ -146,7 +146,7 @@ Brak osobnych fundamentów. Konto i hosting są w Baseline. Izolacja kont oraz z
 - **Unknowns:**
   - Jak wybierana jest bieżąca decyzja bez parametru w URL (przyjęte: ostatnio utworzona) oraz czy usunięcie wymaga wpisania nazwy. — Owner: user. Block: no.
 - **Risk:** zmiana dotyka migracji (zdjęcie unikalności `user_id` w `decisions`), wszystkich endpointów `/api/*` i dashboardu; zachować RLS per `auth.uid()` i kaskadowe usuwanie. Powód: na produkcji zostaje stara decyzja testowa „pizza”, której nie da się zmienić. Wyjęte z Parked 2026-11-16 na prośbę użytkownika.
-- **Status:** planning
+- **Status:** in-progress
 
 ### S-07: Futurystyczny dashboard
 

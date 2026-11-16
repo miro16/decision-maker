@@ -8,6 +8,7 @@ const { user } = Astro.locals;
 const supabase = createClient(Astro.request.headers, Astro.cookies);
 const error = Astro.url.searchParams.get("error");
 
+let decisionId: string | null = null;
 let decisionTitle: string | null = null;
 let showForm = false;
 let loadErrorMessage: string | null = null;
@@ -17,13 +18,18 @@ let scores: { option_id: string; criterion_id: string; value: number }[] = [];
 let ranking: (RankedOption & { name: string })[] | null = null;
 
 if (supabase && user) {
-  const { data, error: loadError } = await supabase
+  const { data: decisionRows, error: loadError } = await supabase
     .from("decisions")
     .select("id, title")
     .eq("user_id", user.id)
-    .maybeSingle<{ id: string; title: string }>();
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(1)
+    .overrideTypes<{ id: string; title: string }[], { merge: false }>();
+  const data = loadError ? null : (decisionRows[0] ?? null);
 
   if (!loadError && data) {
+    decisionId = data.id;
     decisionTitle = data.title;
 
     const [{ data: optionRows, error: optionError }, { data: criterionRows, error: criterionError }] =
@@ -90,6 +96,7 @@ if (supabase && user) {
     error={error}
     loadErrorMessage={loadErrorMessage}
     showForm={showForm}
+    decisionId={decisionId}
     decisionTitle={decisionTitle}
     options={options}
     criteria={criteria}

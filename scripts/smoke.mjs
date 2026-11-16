@@ -1,5 +1,5 @@
 // Smoke test: proves the built app, the Cloudflare adapter, the Supabase auth flow,
-// and that one decision title stays private to its owner.
+// and that decisions, options, criteria and scores stay private to their owner.
 // Zero dependencies on purpose. Run against a live server: BASE_URL=http://localhost:4321 node scripts/smoke.mjs
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4321";
@@ -52,6 +52,37 @@ function rankingOnly(page) {
   return { ...page, body: from === -1 ? "" : page.body.slice(from) };
 }
 
+// The decision the existing steps work on, read from the Location of the create redirect.
+let decisionId = "";
+let cityId = "";
+
+function idFromLocation(location) {
+  return location.match(/^\/dashboard\?decision=([0-9a-f-]{36})$/i)?.[1] ?? "";
+}
+
+// Child writes always name their decision; the id is read when the step runs.
+function child(path, form, getId = () => decisionId, cookieJar = ownerJar) {
+  return () => request(path, { method: "POST", form: { decision_id: getId(), ...form }, cookieJar });
+}
+
+// The form may be a function so it can use ids learned while earlier steps ran.
+function decisionWrite(form, cookieJar = ownerJar) {
+  return () =>
+    request("/api/decisions", { method: "POST", form: typeof form === "function" ? form() : form, cookieJar });
+}
+
+const ok =
+  (getId = () => decisionId) =>
+  () => ({ status: 302, location: `/dashboard?decision=${getId()}`, exactLocation: true });
+const errorAt =
+  (getId = () => decisionId) =>
+  () => ({ status: 302, location: `/dashboard?decision=${getId()}&error=` });
+const exactError = (message) => ({
+  status: 302,
+  location: `/dashboard?error=${encodeURIComponent(message)}`,
+  exactLocation: true,
+});
+
 async function scoreIds() {
   const page = await request("/dashboard");
   return {
@@ -69,7 +100,12 @@ function saveScores(optionKey, price, battery, cookieJar = ownerJar) {
     const ids = await scoreIds();
     return request("/api/scores", {
       method: "POST",
-      form: { option_id: ids[optionKey], [`score_${ids.price}`]: price, [`score_${ids.battery}`]: battery },
+      form: {
+        decision_id: decisionId,
+        option_id: ids[optionKey],
+        [`score_${ids.price}`]: price,
+        [`score_${ids.battery}`]: battery,
+      },
       cookieJar,
     });
   };
@@ -117,8 +153,8 @@ const steps = [
   ["dashboard renders for signed-in user", () => request("/dashboard"), { status: 200 }],
   [
     "blank title is rejected",
-    () => request("/api/decisions", { method: "POST", form: { title: "" } }),
-    { status: 302, location: "/dashboard?error=" },
+    decisionWrite({ intent: "create", title: "" }),
+    exactError("Enter a title up to 200 characters"),
   ],
   [
     "dashboard has no stored title after blank rejection",
@@ -127,34 +163,29 @@ const steps = [
   ],
   [
     "owner creates Which laptop?",
-    () => request("/api/decisions", { method: "POST", form: { title: "Which laptop?" } }),
-    { status: 302, location: "/dashboard", exactLocation: true },
+    async () => {
+      const result = await request("/api/decisions", {
+        method: "POST",
+        form: { intent: "create", title: "Which laptop?" },
+      });
+      decisionId = idFromLocation(result.location);
+      return result;
+    },
+    () => ({ status: 302, location: `/dashboard?decision=${decisionId}`, exactLocation: true }),
   ],
   [
     "owner dashboard shows Which laptop?",
     () => request("/dashboard"),
     { status: 200, bodyIncludes: ["Which laptop?"], bodyExcludes: ['name="title"'] },
   ],
-  [
-    "blank option name is rejected",
-    () => request("/api/options", { method: "POST", form: { intent: "create", name: "" } }),
-    { status: 302, location: "/dashboard?error=" },
-  ],
+  ["blank option name is rejected", child("/api/options", { intent: "create", name: "" }), errorAt()],
   [
     "dashboard has no option after blank rejection",
     () => request("/dashboard"),
     { status: 200, bodyIncludes: ["Which laptop?"], bodyExcludes: ["MacBook", "ThinkPad"] },
   ],
-  [
-    "owner creates MacBook",
-    () => request("/api/options", { method: "POST", form: { intent: "create", name: "MacBook" } }),
-    { status: 302, location: "/dashboard", exactLocation: true },
-  ],
-  [
-    "owner creates Price at weight 3",
-    () => request("/api/criteria", { method: "POST", form: { intent: "create", name: "Price", weight: "3" } }),
-    { status: 302, location: "/dashboard", exactLocation: true },
-  ],
+  ["owner creates MacBook", child("/api/options", { intent: "create", name: "MacBook" }), ok()],
+  ["owner creates Price at weight 3", child("/api/criteria", { intent: "create", name: "Price", weight: "3" }), ok()],
   [
     "owner dashboard shows MacBook and Price (3)",
     () => request("/dashboard"),
@@ -162,8 +193,8 @@ const steps = [
   ],
   [
     "owner creates Battery at weight 1",
-    () => request("/api/criteria", { method: "POST", form: { intent: "create", name: "Battery", weight: "1" } }),
-    { status: 302, location: "/dashboard", exactLocation: true },
+    child("/api/criteria", { intent: "create", name: "Battery", weight: "1" }),
+    ok(),
   ],
   [
     "owner dashboard keeps Price (3) before Battery (1)",
@@ -186,20 +217,11 @@ const steps = [
     { status: 200, bodyExcludes: ["Which laptop?", "MacBook", "Price"] },
   ],
   [
-    "second title is rejected",
-    () => request("/api/decisions", { method: "POST", form: { title: "Which city?" } }),
-    { status: 302, location: "/dashboard?error=" },
-  ],
-  [
     "owner dashboard keeps Which laptop?",
     () => request("/dashboard"),
-    { status: 200, bodyIncludes: ["Which laptop?", "MacBook", "Price (3)"], bodyExcludes: ["Which city?"] },
+    { status: 200, bodyIncludes: ["Which laptop?", "MacBook", "Price (3)"] },
   ],
-  [
-    "duplicate macbook is rejected",
-    () => request("/api/options", { method: "POST", form: { intent: "create", name: "macbook" } }),
-    { status: 302, location: "/dashboard?error=" },
-  ],
+  ["duplicate macbook is rejected", child("/api/options", { intent: "create", name: "macbook" }), errorAt()],
   [
     "owner dashboard keeps MacBook after duplicate",
     () => request("/dashboard"),
@@ -207,8 +229,8 @@ const steps = [
   ],
   [
     "weight 9 on Range is rejected",
-    () => request("/api/criteria", { method: "POST", form: { intent: "create", name: "Range", weight: "9" } }),
-    { status: 302, location: "/dashboard?error=" },
+    child("/api/criteria", { intent: "create", name: "Range", weight: "9" }),
+    errorAt(),
   ],
   [
     "owner dashboard has no Range",
@@ -221,10 +243,15 @@ const steps = [
       const page = await request("/dashboard");
       return request("/api/options", {
         method: "POST",
-        form: { intent: "update", id: hiddenIdAfter(page.body, "MacBook"), name: "ThinkPad" },
+        form: {
+          decision_id: decisionId,
+          intent: "update",
+          id: hiddenIdAfter(page.body, "MacBook"),
+          name: "ThinkPad",
+        },
       });
     },
-    { status: 302, location: "/dashboard", exactLocation: true },
+    ok(),
   ],
   [
     "owner dashboard shows ThinkPad",
@@ -237,10 +264,10 @@ const steps = [
       const page = await request("/dashboard");
       return request("/api/options", {
         method: "POST",
-        form: { intent: "delete", id: hiddenIdAfter(page.body, "ThinkPad") },
+        form: { decision_id: decisionId, intent: "delete", id: hiddenIdAfter(page.body, "ThinkPad") },
       });
     },
-    { status: 302, location: "/dashboard", exactLocation: true },
+    ok(),
   ],
   [
     "owner dashboard no longer shows ThinkPad",
@@ -252,28 +279,23 @@ const steps = [
     async () => {
       let last = { status: 0, location: "", body: "" };
       for (const name of ["ScoreA", "ScoreB", "ScoreC"]) {
-        last = await request("/api/options", { method: "POST", form: { intent: "create", name } });
-        if (last.status !== 302 || last.location !== "/dashboard") return last;
+        last = await request("/api/options", {
+          method: "POST",
+          form: { decision_id: decisionId, intent: "create", name },
+        });
+        if (last.status !== 302 || last.location !== `/dashboard?decision=${decisionId}`) return last;
       }
       return last;
     },
-    { status: 302, location: "/dashboard", exactLocation: true },
+    ok(),
   ],
   [
     "ranking shows no scores yet before any score is saved",
     async () => rankingOnly(await request("/dashboard")),
     { status: 200, bodyIncludes: ["No scores yet"], bodyExcludes: ["Total "] },
   ],
-  [
-    "owner saves a complete grid for ScoreA",
-    saveScores("a", "5", "5"),
-    { status: 302, location: "/dashboard", exactLocation: true },
-  ],
-  [
-    "owner saves a complete grid for ScoreB",
-    saveScores("b", "1", "1"),
-    { status: 302, location: "/dashboard", exactLocation: true },
-  ],
+  ["owner saves a complete grid for ScoreA", saveScores("a", "5", "5"), ok()],
+  ["owner saves a complete grid for ScoreB", saveScores("b", "1", "1"), ok()],
   [
     "ranking puts the higher total above the lower one",
     async () => rankingOnly(await request("/dashboard")),
@@ -287,11 +309,7 @@ const steps = [
       ],
     },
   ],
-  [
-    "owner clears the Battery score of ScoreB",
-    saveScores("b", "1", ""),
-    { status: 302, location: "/dashboard", exactLocation: true },
-  ],
+  ["owner clears the Battery score of ScoreB", saveScores("b", "1", ""), ok()],
   [
     "partial grid shows ScoreB as incomplete with the sum of the scores that exist",
     async () => rankingOnly(await request("/dashboard")),
@@ -302,16 +320,8 @@ const steps = [
       bodyOrder: [["ScoreA", "ScoreB"]],
     },
   ],
-  [
-    "owner saves equal totals for ScoreA",
-    saveScores("a", "2", "1"),
-    { status: 302, location: "/dashboard", exactLocation: true },
-  ],
-  [
-    "owner saves equal totals for ScoreB",
-    saveScores("b", "2", "1"),
-    { status: 302, location: "/dashboard", exactLocation: true },
-  ],
+  ["owner saves equal totals for ScoreA", saveScores("a", "2", "1"), ok()],
+  ["owner saves equal totals for ScoreB", saveScores("b", "2", "1"), ok()],
   [
     "equal totals share rank 1 with a tie marker and the next rank skips to 3",
     async () => rankingOnly(await request("/dashboard")),
@@ -322,7 +332,7 @@ const steps = [
     ["score 6", "5", "6"],
     ["score abc", "abc", "5"],
   ].flatMap(([label, price, battery]) => [
-    [`${label} is rejected`, saveScores("a", price, battery), { status: 302, location: "/dashboard?error=" }],
+    [`${label} is rejected`, saveScores("a", price, battery), errorAt()],
     [
       `${label} stores nothing`,
       async () => rankingOnly(await request("/dashboard")),
@@ -340,13 +350,14 @@ const steps = [
       return request("/api/scores", {
         method: "POST",
         form: {
+          decision_id: decisionId,
           option_id: "00000000-0000-4000-8000-000000000000",
           [`score_${ids.price}`]: "5",
           [`score_${ids.battery}`]: "5",
         },
       });
     },
-    { status: 302, location: "/dashboard?error=" },
+    errorAt(),
   ],
   [
     "second account cannot save scores on the owner's option",
@@ -354,11 +365,16 @@ const steps = [
       const ids = await scoreIds();
       return request("/api/scores", {
         method: "POST",
-        form: { option_id: ids.a, [`score_${ids.price}`]: "1", [`score_${ids.battery}`]: "1" },
+        form: {
+          decision_id: decisionId,
+          option_id: ids.a,
+          [`score_${ids.price}`]: "1",
+          [`score_${ids.battery}`]: "1",
+        },
         cookieJar: otherJar,
       });
     },
-    { status: 302, location: "/dashboard?error=" },
+    exactError("Create a decision first"),
   ],
   [
     "second account does not see the owner's scores or ranking",
@@ -378,13 +394,13 @@ const steps = [
         const page = await request("/dashboard");
         last = await request("/api/options", {
           method: "POST",
-          form: { intent: "delete", id: hiddenIdAfter(page.body, name) },
+          form: { decision_id: decisionId, intent: "delete", id: hiddenIdAfter(page.body, name) },
         });
-        if (last.status !== 302 || last.location !== "/dashboard") return last;
+        if (last.status !== 302 || last.location !== `/dashboard?decision=${decisionId}`) return last;
       }
       return last;
     },
-    { status: 302, location: "/dashboard", exactLocation: true },
+    ok(),
   ],
   [
     "owner dashboard has no ScoreA, ScoreB or ranking after the deletes",
@@ -398,34 +414,209 @@ const steps = [
       for (let n = 1; n <= 20; n += 1) {
         last = await request("/api/options", {
           method: "POST",
-          form: { intent: "create", name: `N${String(n).padStart(2, "0")}` },
+          form: { decision_id: decisionId, intent: "create", name: `N${String(n).padStart(2, "0")}` },
         });
-        if (last.status !== 302 || last.location !== "/dashboard") return last;
+        if (last.status !== 302 || last.location !== `/dashboard?decision=${decisionId}`) return last;
       }
       return last;
     },
-    { status: 302, location: "/dashboard", exactLocation: true },
+    ok(),
   ],
-  [
-    "21st option N21 is rejected",
-    () => request("/api/options", { method: "POST", form: { intent: "create", name: "N21" } }),
-    { status: 302, location: "/dashboard?error=" },
-  ],
+  ["21st option N21 is rejected", child("/api/options", { intent: "create", name: "N21" }), errorAt()],
   [
     "owner dashboard has N20 and not N21",
     () => request("/dashboard"),
     { status: 200, bodyIncludes: ["N20"], bodyExcludes: ["N21"] },
+  ],
+  [
+    "second account cannot rename the owner's decision",
+    decisionWrite(() => ({ intent: "rename", id: decisionId, title: "Hijacked" }), otherJar),
+    exactError("Decision not found"),
+  ],
+  [
+    "second account cannot delete the owner's decision",
+    decisionWrite(() => ({ intent: "delete", id: decisionId }), otherJar),
+    exactError("Decision not found"),
+  ],
+  [
+    "owner decision survives the second account's rename and delete",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["Which laptop?", "N20"], bodyExcludes: ["Hijacked"] },
+  ],
+  ...[
+    ["options", { intent: "create", name: "Intruder" }],
+    ["criteria", { intent: "create", name: "Intruder", weight: "2" }],
+    ["scores", { option_id: "00000000-0000-4000-8000-000000000000" }],
+  ].flatMap(([path, form]) => [
+    [
+      `${path} reject a decision_id of another account`,
+      child(`/api/${path}`, form, () => decisionId, otherJar),
+      exactError("Create a decision first"),
+    ],
+    [
+      `${path} reject a malformed decision_id`,
+      child(`/api/${path}`, form, () => "not-a-uuid"),
+      exactError("Create a decision first"),
+    ],
+    [
+      `${path} reject a missing decision_id`,
+      () => request(`/api/${path}`, { method: "POST", form }),
+      exactError("Create a decision first"),
+    ],
+  ]),
+  [
+    "owner dashboard has no Intruder after the rejected writes",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["Which laptop?", "N20"], bodyExcludes: ["Intruder"] },
+  ],
+  [
+    "owner rename with a malformed id is not found",
+    decisionWrite({ intent: "rename", id: "not-a-uuid", title: "Anything" }),
+    exactError("Decision not found"),
+  ],
+  [
+    "unknown decision intent is refused",
+    decisionWrite({ intent: "archive", title: "Anything" }),
+    exactError("Could not save the decision"),
+  ],
+  [
+    "owner creates a second decision Which city?",
+    async () => {
+      const result = await request("/api/decisions", {
+        method: "POST",
+        form: { intent: "create", title: "Which city?" },
+      });
+      cityId = idFromLocation(result.location);
+      return result;
+    },
+    () => ({ status: 302, location: `/dashboard?decision=${cityId}`, exactLocation: true }),
+  ],
+  [
+    "dashboard shows the newest decision with its own children",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["Which city?"], bodyExcludes: ["Which laptop?", "N20", "Price (3)"] },
+  ],
+  [
+    "owner renames the second decision",
+    () => request("/api/decisions", { method: "POST", form: { intent: "rename", id: cityId, title: "Which town?" } }),
+    ok(() => cityId),
+  ],
+  [
+    "dashboard shows the new title and not the old one",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["Which town?"], bodyExcludes: ["Which city?", "Which laptop?"] },
+  ],
+  [
+    "blank rename is rejected",
+    () => request("/api/decisions", { method: "POST", form: { intent: "rename", id: cityId, title: "  " } }),
+    errorAt(() => cityId),
+  ],
+  [
+    "title is unchanged after the blank rename",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["Which town?"] },
+  ],
+  [
+    "owner adds an option and a criterion to the second decision",
+    async () => {
+      const first = await child("/api/options", { intent: "create", name: "CityOption" }, () => cityId)();
+      if (first.location !== `/dashboard?decision=${cityId}`) return first;
+      return child("/api/criteria", { intent: "create", name: "Walkable", weight: "2" }, () => cityId)();
+    },
+    ok(() => cityId),
+  ],
+  [
+    "owner scores the option of the second decision",
+    async () => {
+      const page = await request("/dashboard");
+      return request("/api/scores", {
+        method: "POST",
+        form: {
+          decision_id: cityId,
+          option_id: hiddenIdAfter(page.body, "CityOption"),
+          [`score_${hiddenIdAfter(page.body, "Walkable (2)")}`]: "5",
+        },
+      });
+    },
+    ok(() => cityId),
+  ],
+  [
+    "second decision shows its own ranking",
+    async () => rankingOnly(await request("/dashboard")),
+    { status: 200, bodyIncludes: ["CityOption", "Total 10"] },
+  ],
+  [
+    "owner deletes the second decision",
+    () => request("/api/decisions", { method: "POST", form: { intent: "delete", id: cityId } }),
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "delete removed the second decision with its options, criteria and scores",
+    () => request("/dashboard"),
+    {
+      status: 200,
+      bodyIncludes: ["Which laptop?", "N20", "Price (3)"],
+      bodyExcludes: ["Which town?", "CityOption", "Walkable", "Total 10"],
+    },
+  ],
+  [
+    "writing to the deleted decision is refused",
+    child("/api/options", { intent: "create", name: "Ghost" }, () => cityId),
+    exactError("Create a decision first"),
+  ],
+  [
+    "deleting the deleted decision again is not found",
+    decisionWrite(() => ({ intent: "delete", id: cityId })),
+    exactError("Decision not found"),
+  ],
+  [
+    "owner fills the account up to 20 decisions",
+    async () => {
+      let last = { status: 0, location: "", body: "" };
+      for (let n = 1; n <= 19; n += 1) {
+        last = await request("/api/decisions", {
+          method: "POST",
+          form: { intent: "create", title: `Cap${String(n).padStart(2, "0")}` },
+        });
+        if (last.status !== 302 || !idFromLocation(last.location)) return last;
+      }
+      return last;
+    },
+    { status: 302, location: "/dashboard?decision=" },
+  ],
+  [
+    "21st decision is refused",
+    decisionWrite({ intent: "create", title: "Cap20" }),
+    exactError("You can have at most 20 decisions"),
+  ],
+  [
+    "dashboard still shows the newest decision and not the refused one",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["Cap19"], bodyExcludes: ["Cap20"] },
+  ],
+  [
+    "second account has its own decision allowance",
+    decisionWrite({ intent: "create", title: "Other decision" }, otherJar),
+    { status: 302, location: "/dashboard?decision=" },
+  ],
+  [
+    "owner does not see the second account's decision",
+    () => request("/dashboard"),
+    { status: 200, bodyExcludes: ["Other decision"] },
   ],
   ["signout clears session", () => request("/api/auth/signout", { method: "POST" }), { status: 302, location: "/" }],
   ["dashboard redirects after signout", () => request("/dashboard"), { status: 302, location: "/auth/signin" }],
 ];
 
 let failed = 0;
-for (const [name, run, expected] of steps) {
+for (const [name, run, expectation] of steps) {
   const actual = await run();
-  const ok = actual.status === expected.status && locationMatches(actual, expected) && bodyMatches(actual, expected);
-  console.log(`${ok ? "PASS" : "FAIL"}  ${name}  -> ${actual.status} ${actual.location}`);
-  if (!ok) {
+  // An expectation may be a function so it can use ids learned while the step ran.
+  const expected = typeof expectation === "function" ? expectation() : expectation;
+  const passed =
+    actual.status === expected.status && locationMatches(actual, expected) && bodyMatches(actual, expected);
+  console.log(`${passed ? "PASS" : "FAIL"}  ${name}  -> ${actual.status} ${actual.location}`);
+  if (!passed) {
     failed++;
     console.log(`      expected ${expected.status} ${expected.location ?? ""}`);
     const missing = (expected.bodyIncludes ?? []).filter((part) => !actual.body.includes(part));

@@ -34,6 +34,7 @@ interface Props {
   error: string | null;
   loadErrorMessage: string | null;
   showForm: boolean;
+  decisionId: string | null;
   decisionTitle: string | null;
   options: OptionRow[];
   criteria: CriterionRow[];
@@ -41,7 +42,8 @@ interface Props {
   ranking: RankingRow[] | null;
 }
 
-const { email, error, loadErrorMessage, showForm, decisionTitle, options, criteria, scores, ranking } = Astro.props;
+const { email, error, loadErrorMessage, showForm, decisionId, decisionTitle, options, criteria, scores, ranking } =
+  Astro.props;
 
 const scoreValues = new Map(scores.map((score) => [`${score.option_id}:${score.criterion_id}`, score.value]));
 const rankCounts = new Map<number, number>();
@@ -74,6 +76,7 @@ const canScore = options.length > 0 && criteria.length > 0;
         </p>
       ) : showForm ? (
         <form method="POST" action="/api/decisions" class="space-y-3">
+          <input type="hidden" name="intent" value="create" />
           <p class="text-sm text-muted-foreground">Name the decision you want to make.</p>
           <Label htmlFor="decision-title">Title</Label>
           <Input id="decision-title" type="text" name="title" maxLength={200} />
@@ -90,6 +93,7 @@ const canScore = options.length > 0 && criteria.length > 0;
                 <div class="space-y-2 rounded-lg border border-border p-3">
                   <p class="text-sm font-medium text-foreground">{option.name}</p>
                   <form method="POST" action="/api/options" class="space-y-2">
+                    <input type="hidden" name="decision_id" value={decisionId} />
                     <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="id" value={option.id} />
                     <Label className="flex-col items-stretch gap-1 text-muted-foreground">
@@ -101,6 +105,7 @@ const canScore = options.length > 0 && criteria.length > 0;
                     </Button>
                   </form>
                   <form method="POST" action="/api/options">
+                    <input type="hidden" name="decision_id" value={decisionId} />
                     <input type="hidden" name="intent" value="delete" />
                     <input type="hidden" name="id" value={option.id} />
                     <Button type="submit" variant="destructive" size="sm">
@@ -111,6 +116,7 @@ const canScore = options.length > 0 && criteria.length > 0;
               ))}
               {options.length < 20 && (
                 <form method="POST" action="/api/options" class="space-y-2">
+                  <input type="hidden" name="decision_id" value={decisionId} />
                   <input type="hidden" name="intent" value="create" />
                   <Label className="flex-col items-stretch gap-1 text-muted-foreground">
                     Option
@@ -129,6 +135,7 @@ const canScore = options.length > 0 && criteria.length > 0;
                     {criterion.name} ({criterion.weight})
                   </p>
                   <form method="POST" action="/api/criteria" class="space-y-2">
+                    <input type="hidden" name="decision_id" value={decisionId} />
                     <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="id" value={criterion.id} />
                     <Label className="flex-col items-stretch gap-1 text-muted-foreground">
@@ -144,6 +151,7 @@ const canScore = options.length > 0 && criteria.length > 0;
                     </Button>
                   </form>
                   <form method="POST" action="/api/criteria">
+                    <input type="hidden" name="decision_id" value={decisionId} />
                     <input type="hidden" name="intent" value="delete" />
                     <input type="hidden" name="id" value={criterion.id} />
                     <Button type="submit" variant="destructive" size="sm">
@@ -154,6 +162,7 @@ const canScore = options.length > 0 && criteria.length > 0;
               ))}
               {criteria.length < 20 && (
                 <form method="POST" action="/api/criteria" class="space-y-2">
+                  <input type="hidden" name="decision_id" value={decisionId} />
                   <input type="hidden" name="intent" value="create" />
                   <Label className="flex-col items-stretch gap-1 text-muted-foreground">
                     Criterion
@@ -175,6 +184,7 @@ const canScore = options.length > 0 && criteria.length > 0;
                 </p>
                 {options.map((option) => (
                   <form method="POST" action="/api/scores" class="space-y-2 rounded-lg border border-border p-3">
+                    <input type="hidden" name="decision_id" value={decisionId} />
                     <input type="hidden" name="option_id" value={option.id} />
                     <p class="text-sm font-medium text-foreground">{option.name}</p>
                     {criteria.map((criterion) => (
