@@ -2,7 +2,7 @@
 project: "Decision Maker"
 context_type: brownfield
 created: 2026-09-26
-updated: 2026-09-29
+updated: 2026-11-16
 timeline_budget:
   delivery_weeks: 1
   hard_deadline: 2026-12-06
@@ -34,7 +34,11 @@ checkpoint:
       decision: "small — just me or a handful; at 100x the ranking rule stays the same"
     - topic: "timing"
       decision: "hard_deadline 2026-12-06; after_hours_only true"
-  frs_drafted: 10
+    - topic: "ai criteria suggestions (added 2026-11-16)"
+      decision: "Model językowy podpowiada tylko nazwy kryteriów (np. cena, przebieg przy zakupie samochodu). Nie ustawia wag, nie ocenia opcji, nie wpływa na ranking. Użytkownik sam dodaje wybraną sugestię z wagą 1–5. Dostawca modelu — otwarte pytanie."
+    - topic: "tie-breaker wheel (added 2026-11-16)"
+      decision: "Remis na pierwszym miejscu rozstrzyga koło fortuny losujące jedną z remisujących opcji. Skala ocen 1–5, ranking częściowy z oznaczeniem braków, remis = to samo miejsce."
+  frs_drafted: 12
   quality_check_status: accepted
 ---
 
@@ -85,10 +89,12 @@ Udostępnianie decyzji między użytkownikami nie wchodzi w v1.
 ### Secondary
 
 - Więcej niż jedna decyzja na konto.
+- Użytkownik dostaje od modelu językowego sugestie kryteriów dla swojej decyzji i dodaje wybrane (FR-011).
 
 ### Guardrails
 
 - Decyzje nie wyciekają między kontami.
+- Model językowy dostaje wyłącznie dane decyzji zalogowanego właściciela; jego awaria nie psuje reszty aplikacji.
 
 Blast radius: nie ma istniejącej aplikacji — nic produkcyjnego do zepsucia.
 
@@ -118,6 +124,16 @@ Blast radius: nie ma istniejącej aplikacji — nic produkcyjnego do zepsucia.
 - FR-009: Użytkownik może mieć więcej niż jedną decyzję. Priority: nice-to-have. Change: new
   > Socrates: No counter-argument; it stands as written.
 
+### Koło fortuny przy remisie (dodane 2026-11-16)
+
+- FR-012: Gdy dwie lub więcej opcji ma równy wynik ważony na pierwszym miejscu rankingu, użytkownik może zakręcić kołem fortuny, które losuje jedną z tych opcji. Priority: nice-to-have. Change: new
+  > Socrates: Counter-argument considered: "Los zastępuje decyzję, a ranking miał ją uzasadniać." Resolution: kept; koło działa tylko przy realnym remisie, nie zmienia rankingu ani wyników, a losowanie jest oznaczone jako rozstrzygnięcie remisu.
+
+### Sugestie kryteriów (dodane 2026-11-16)
+
+- FR-011: Użytkownik może poprosić model językowy o sugestie kryteriów dla swojej decyzji (np. przy „Który samochód kupić?”: cena, przebieg, koszt utrzymania) i dodać wybrane do decyzji. Priority: nice-to-have. Change: new
+  > Socrates: Counter-argument considered: "Gotowe sugestie ograniczą własne myślenie, a model poda ogólniki." Resolution: kept; sugestie są opcjonalne, nic nie trafia do decyzji bez akcji użytkownika, a wagę zawsze ustawia użytkownik.
+
 ### Admin (po pierwszym etapie)
 
 - FR-010: Admin może blokować lub usuwać konta. Priority: nice-to-have. Change: new
@@ -131,9 +147,25 @@ Blast radius: nie ma istniejącej aplikacji — nic produkcyjnego do zepsucia.
 - **When** otwiera tę decyzję
 - **Then** widzi ranking z wyniku ważonego; nie widzi decyzji innych kont
 
+Uzupełnienie US-01 (2026-11-16): oceny to liczby całkowite 1–5; ranking pokazuje się przy choć jednej ocenie, opcja z brakami jest oznaczona jako niekompletna (brak oceny to nie 0); równy wynik daje to samo miejsce i oznaczenie remisu.
+
+### US-03: Zalogowany użytkownik rozstrzyga remis kołem fortuny
+
+- **Given** konto i decyzja, w której co najmniej dwie opcje mają równy, najwyższy wynik i są w pełni ocenione
+- **When** kręci kołem fortuny
+- **Then** koło pokazuje tylko te opcje i losuje jedną; ranking i wyniki się nie zmieniają
+
+### US-02: Zalogowany użytkownik dostaje sugestie kryteriów od modelu
+
+- **Given** konto i decyzja „Który samochód kupić?”, w której nie ma jeszcze wszystkich kryteriów
+- **When** prosi o sugestie kryteriów
+- **Then** widzi listę propozycji (np. cena, przebieg, koszt utrzymania) bez tych, które już ma; może dodać wybraną, podając wagę 1–5; nic nie dodaje się samo, a gdy model jest niedostępny, reszta decyzji działa bez zmian
+
 ## Business Logic
 
 Opcja z wyższym wynikiem ważonym (oceny × wagi kryteriów) stoi wyżej w rankingu.
+
+Model językowy podpowiada wyłącznie nazwy kryteriów. Nie ustawia wag, nie ocenia opcji i nie wpływa na ranking. Podpowiedź staje się kryterium dopiero po dodaniu przez użytkownika z jego wagą 1–5 i podlega tym samym regułom co kryterium dodane ręcznie.
 
 Wejścia, które podaje użytkownik: opcje, kryteria z wagami, oceny opcji. Wyjście: jeden ranking. Użytkownik widzi go na decyzji, bez ręcznego liczenia.
 
@@ -151,10 +183,12 @@ Brak okien wdrożeń, istniejącego CI ani konsumentów API do zachowania.
 
 - Decyzje jednego konta nie pojawiają się u innego użytkownika.
 - Gdy oceny i wagi są uzupełnione, użytkownik widzi ranking bez osobnego, ręcznego przeliczania — ranking jest dostępny od razu po ich podaniu.
+- Do dostawcy modelu trafiają tylko dane decyzji zalogowanego właściciela (tytuł, nazwy jego kryteriów). Klucz dostawcy to sekret serwera. Awaria modelu nie blokuje reszty aplikacji.
 
 ## Non-Goals
 
 - Udostępnianie decyzji między użytkownikami — v1 ma prywatne decyzje per konto; sharing świadomie później.
+- Model językowy poza sugerowaniem nazw kryteriów: bez sugerowania opcji, wag i ocen, bez wskazywania zwycięzcy, bez czatu.
 
 ## Quality cross-check
 
