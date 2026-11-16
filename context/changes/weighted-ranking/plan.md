@@ -218,31 +218,31 @@ S-02's manual rows 2.5, 2.6, and 2.7 are tracked in `context/changes/options-and
 
 #### Automated
 
-- [x] 1.1 `npm run lint` passes
-- [x] 1.2 `npx astro check` passes
-- [x] 1.3 `npm run build` passes
+- [x] 1.1 `npm run lint` passes — e93fb98
+- [x] 1.2 `npx astro check` passes — e93fb98
+- [x] 1.3 `npm run build` passes — e93fb98
 
 #### Manual
 
-- [x] 1.4 Weights 1 and 3 with scores (2, 4) and (5, 1) produce totals 14 and 8, and 14 ranks above 8
-- [x] 1.5 Two options with the same total share a rank, and the next option's rank skips accordingly
-- [x] 1.6 An option with one missing score is reported incomplete with one missing and a total from the scores that exist, not from a 0
+- [x] 1.4 Weights 1 and 3 with scores (2, 4) and (5, 1) produce totals 14 and 8, and 14 ranks above 8 — e93fb98
+- [x] 1.5 Two options with the same total share a rank, and the next option's rank skips accordingly — e93fb98
+- [x] 1.6 An option with one missing score is reported incomplete with one missing and a total from the scores that exist, not from a 0 — e93fb98
 
 ### Phase 2: Score cells and the dashboard ranking
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` passes
-- [ ] 2.2 `npx astro check` passes
-- [ ] 2.3 `npm run build` passes
-- [ ] 2.4 `node scripts/scan-dashboard-literals.mjs` reports `total: 0`
-- [ ] 2.5 `npm run smoke` passes and covers a complete grid, a partial grid with the incomplete marker, a tie marker, rejected out-of-range scores, and a second account that sees none of it
+- [x] 2.1 `npm run lint` passes
+- [x] 2.2 `npx astro check` passes
+- [x] 2.3 `npm run build` passes
+- [x] 2.4 `node scripts/scan-dashboard-literals.mjs` reports `total: 0`
+- [x] 2.5 `npm run smoke` passes and covers a complete grid, a partial grid with the incomplete marker, a tie marker, rejected out-of-range scores, and a second account that sees none of it
 
 #### Manual
 
-- [ ] 2.6 On a complete grid, the owner sees the higher weighted sum above the lower one, with weights left as stored integers 1–5 and with no normalization
-- [ ] 2.7 With one score missing, that option is marked incomplete and its total is the sum of the scores that exist
-- [ ] 2.8 Two equal totals show the same rank and a tie marker
-- [ ] 2.9 Another account does not see those scores or that order
-- [ ] 2.10 Deleting an option or a criterion that has scores still works and the ranking updates
-- [ ] 2.11 `/dev/dashboard-states` shows the new states in light and dark, at desktop and mobile width
+- [x] 2.6 On a complete grid, the owner sees the higher weighted sum above the lower one, with weights left as stored integers 1–5 and with no normalization
+- [x] 2.7 With one score missing, that option is marked incomplete and its total is the sum of the scores that exist
+- [x] 2.8 Two equal totals show the same rank and a tie marker
+- [x] 2.9 Another account does not see those scores or that order
+- [x] 2.10 Deleting an option or a criterion that has scores still works and the ranking updates
+- [x] 2.11 `/dev/dashboard-states` shows the new states in light and dark, at desktop and mobile width

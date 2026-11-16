@@ -46,6 +46,35 @@ function hiddenIdAfter(body, marker) {
   return match?.[1] ?? "";
 }
 
+// Options and criteria are listed before the ranking, so ranking assertions look only at what follows its heading.
+function rankingOnly(page) {
+  const from = page.body.indexOf(">Ranking<");
+  return { ...page, body: from === -1 ? "" : page.body.slice(from) };
+}
+
+async function scoreIds() {
+  const page = await request("/dashboard");
+  return {
+    a: hiddenIdAfter(page.body, "ScoreA"),
+    b: hiddenIdAfter(page.body, "ScoreB"),
+    c: hiddenIdAfter(page.body, "ScoreC"),
+    price: hiddenIdAfter(page.body, "Price (3)"),
+    battery: hiddenIdAfter(page.body, "Battery (1)"),
+  };
+}
+
+// An empty string leaves the field blank, which clears that cell.
+function saveScores(optionKey, price, battery, cookieJar = ownerJar) {
+  return async () => {
+    const ids = await scoreIds();
+    return request("/api/scores", {
+      method: "POST",
+      form: { option_id: ids[optionKey], [`score_${ids.price}`]: price, [`score_${ids.battery}`]: battery },
+      cookieJar,
+    });
+  };
+}
+
 function locationMatches(actual, expected) {
   if (expected.location === undefined) return true;
   if (expected.exactLocation) return actual.location === expected.location;
@@ -217,6 +246,150 @@ const steps = [
     "owner dashboard no longer shows ThinkPad",
     () => request("/dashboard"),
     { status: 200, bodyExcludes: ["ThinkPad"] },
+  ],
+  [
+    "owner creates ScoreA, ScoreB and ScoreC",
+    async () => {
+      let last = { status: 0, location: "", body: "" };
+      for (const name of ["ScoreA", "ScoreB", "ScoreC"]) {
+        last = await request("/api/options", { method: "POST", form: { intent: "create", name } });
+        if (last.status !== 302 || last.location !== "/dashboard") return last;
+      }
+      return last;
+    },
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "ranking shows no scores yet before any score is saved",
+    async () => rankingOnly(await request("/dashboard")),
+    { status: 200, bodyIncludes: ["No scores yet"], bodyExcludes: ["Total "] },
+  ],
+  [
+    "owner saves a complete grid for ScoreA",
+    saveScores("a", "5", "5"),
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "owner saves a complete grid for ScoreB",
+    saveScores("b", "1", "1"),
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "ranking puts the higher total above the lower one",
+    async () => rankingOnly(await request("/dashboard")),
+    {
+      status: 200,
+      bodyIncludes: ["Total 20", "Total 4", "ScoreC", "incomplete (2 missing)"],
+      bodyExcludes: ["No scores yet", ">tie<"],
+      bodyOrder: [
+        ["ScoreA", "ScoreB"],
+        ["ScoreB", "ScoreC"],
+      ],
+    },
+  ],
+  [
+    "owner clears the Battery score of ScoreB",
+    saveScores("b", "1", ""),
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "partial grid shows ScoreB as incomplete with the sum of the scores that exist",
+    async () => rankingOnly(await request("/dashboard")),
+    {
+      status: 200,
+      bodyIncludes: ["Total 20", "Total 3", "incomplete (1 missing)"],
+      bodyExcludes: ["Total 4", ">tie<"],
+      bodyOrder: [["ScoreA", "ScoreB"]],
+    },
+  ],
+  [
+    "owner saves equal totals for ScoreA",
+    saveScores("a", "2", "1"),
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "owner saves equal totals for ScoreB",
+    saveScores("b", "2", "1"),
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "equal totals share rank 1 with a tie marker and the next rank skips to 3",
+    async () => rankingOnly(await request("/dashboard")),
+    { status: 200, bodyIncludes: ["Total 7", ">1.<", ">tie<", ">3.<"], bodyExcludes: [">2.<", "Total 20", "Total 3"] },
+  ],
+  ...[
+    ["score 0", "0", "3"],
+    ["score 6", "5", "6"],
+    ["score abc", "abc", "5"],
+  ].flatMap(([label, price, battery]) => [
+    [`${label} is rejected`, saveScores("a", price, battery), { status: 302, location: "/dashboard?error=" }],
+    [
+      `${label} stores nothing`,
+      async () => rankingOnly(await request("/dashboard")),
+      {
+        status: 200,
+        bodyIncludes: ["Total 7", ">tie<"],
+        bodyExcludes: ["Total 9", "Total 13", "Total 16", "Total 20", "Total 3"],
+      },
+    ],
+  ]),
+  [
+    "score for an option that is not on the decision is rejected",
+    async () => {
+      const ids = await scoreIds();
+      return request("/api/scores", {
+        method: "POST",
+        form: {
+          option_id: "00000000-0000-4000-8000-000000000000",
+          [`score_${ids.price}`]: "5",
+          [`score_${ids.battery}`]: "5",
+        },
+      });
+    },
+    { status: 302, location: "/dashboard?error=" },
+  ],
+  [
+    "second account cannot save scores on the owner's option",
+    async () => {
+      const ids = await scoreIds();
+      return request("/api/scores", {
+        method: "POST",
+        form: { option_id: ids.a, [`score_${ids.price}`]: "1", [`score_${ids.battery}`]: "1" },
+        cookieJar: otherJar,
+      });
+    },
+    { status: 302, location: "/dashboard?error=" },
+  ],
+  [
+    "second account does not see the owner's scores or ranking",
+    () => request("/dashboard", { cookieJar: otherJar }),
+    { status: 200, bodyExcludes: ["ScoreA", "ScoreB", "Ranking", "Total ", "incomplete", ">tie<"] },
+  ],
+  [
+    "owner ranking is unchanged after the second account's attempt",
+    async () => rankingOnly(await request("/dashboard")),
+    { status: 200, bodyIncludes: ["Total 7", ">tie<"], bodyExcludes: ["Total 5", "Total 20"] },
+  ],
+  [
+    "owner deletes ScoreA, ScoreB and ScoreC that have scores",
+    async () => {
+      let last = { status: 0, location: "", body: "" };
+      for (const name of ["ScoreA", "ScoreB", "ScoreC"]) {
+        const page = await request("/dashboard");
+        last = await request("/api/options", {
+          method: "POST",
+          form: { intent: "delete", id: hiddenIdAfter(page.body, name) },
+        });
+        if (last.status !== 302 || last.location !== "/dashboard") return last;
+      }
+      return last;
+    },
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "owner dashboard has no ScoreA, ScoreB or ranking after the deletes",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["Price (3)"], bodyExcludes: ["ScoreA", "ScoreB", "ScoreC", "Ranking", "Total "] },
   ],
   [
     "owner creates options N01 through N20",

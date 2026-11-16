@@ -15,6 +15,20 @@ interface CriterionRow {
   weight: number;
 }
 
+interface ScoreRow {
+  option_id: string;
+  criterion_id: string;
+  value: number;
+}
+
+interface RankingRow {
+  optionId: string;
+  name: string;
+  total: number;
+  missing: number;
+  rank: number;
+}
+
 interface Props {
   email: string | null;
   error: string | null;
@@ -23,9 +37,18 @@ interface Props {
   decisionTitle: string | null;
   options: OptionRow[];
   criteria: CriterionRow[];
+  scores: ScoreRow[];
+  ranking: RankingRow[] | null;
 }
 
-const { email, error, loadErrorMessage, showForm, decisionTitle, options, criteria } = Astro.props;
+const { email, error, loadErrorMessage, showForm, decisionTitle, options, criteria, scores, ranking } = Astro.props;
+
+const scoreValues = new Map(scores.map((score) => [`${score.option_id}:${score.criterion_id}`, score.value]));
+const rankCounts = new Map<number, number>();
+for (const row of ranking ?? []) {
+  rankCounts.set(row.rank, (rankCounts.get(row.rank) ?? 0) + 1);
+}
+const canScore = options.length > 0 && criteria.length > 0;
 ---
 
 <div class="flex min-h-screen justify-center bg-background px-4 py-8 text-foreground">
@@ -144,6 +167,61 @@ const { email, error, loadErrorMessage, showForm, decisionTitle, options, criter
                 </form>
               )}
             </section>
+            {canScore && (
+              <section class="space-y-3">
+                <h2 class="text-lg font-semibold text-foreground">Scores</h2>
+                <p class="text-sm text-muted-foreground">
+                  Score each option from 1 to 5. Leave a field blank for no score.
+                </p>
+                {options.map((option) => (
+                  <form method="POST" action="/api/scores" class="space-y-2 rounded-lg border border-border p-3">
+                    <input type="hidden" name="option_id" value={option.id} />
+                    <p class="text-sm font-medium text-foreground">{option.name}</p>
+                    {criteria.map((criterion) => (
+                      <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+                        {criterion.name} ({criterion.weight})
+                        <Input
+                          type="number"
+                          name={`score_${criterion.id}`}
+                          min={1}
+                          max={5}
+                          value={scoreValues.get(`${option.id}:${criterion.id}`) ?? ""}
+                        />
+                      </Label>
+                    ))}
+                    <Button type="submit" variant="outline" size="sm">
+                      Save scores
+                    </Button>
+                  </form>
+                ))}
+              </section>
+            )}
+            {canScore && (
+              <section class="space-y-3">
+                <h2 class="text-lg font-semibold text-foreground">Ranking</h2>
+                {ranking === null ? (
+                  <p class="text-sm text-muted-foreground">No scores yet.</p>
+                ) : (
+                  <ol class="space-y-2">
+                    {ranking.map((row) => (
+                      <li class="flex flex-wrap items-center gap-2 rounded-lg border border-border p-3 text-sm">
+                        <span class="font-semibold text-foreground">{row.rank}.</span>
+                        <span class="font-medium text-foreground">{row.name}</span>
+                        <span class="text-muted-foreground">Total {row.total}</span>
+                        {row.missing > 0 && (
+                          <span class="rounded-md border border-border px-2 py-0.5 text-muted-foreground">
+                            incomplete ({row.missing} missing)
+                          </span>
+                        )}
+                        {(rankCounts.get(row.rank) ?? 0) > 1 && (
+                          <span class="rounded-md border border-border px-2 py-0.5 text-muted-foreground">tie</span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
+            )}
           </div>
         )
       )}

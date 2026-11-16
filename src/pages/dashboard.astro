@@ -2,6 +2,7 @@
 import DecisionDashboard from "@/components/dashboard/DecisionDashboard.astro";
 import Layout from "@/layouts/Layout.astro";
 import { createClient } from "@/lib/supabase";
+import { rankOptions, type RankedOption } from "@/lib/weighted-sum";
 
 const { user } = Astro.locals;
 const supabase = createClient(Astro.request.headers, Astro.cookies);
@@ -12,6 +13,8 @@ let showForm = false;
 let loadErrorMessage: string | null = null;
 let options: { id: string; name: string }[] = [];
 let criteria: { id: string; name: string; weight: number }[] = [];
+let scores: { option_id: string; criterion_id: string; value: number }[] = [];
+let ranking: (RankedOption & { name: string })[] | null = null;
 
 if (supabase && user) {
   const { data, error: loadError } = await supabase
@@ -36,8 +39,42 @@ if (supabase && user) {
     if (optionError || criterionError) {
       loadErrorMessage = "Could not load your decision";
     } else {
-      options = optionRows;
-      criteria = criterionRows;
+      const loadedOptions: { id: string; name: string }[] = optionRows;
+      let loadedScores: { option_id: string; criterion_id: string; value: number }[] = [];
+      let scoreFailed = false;
+
+      if (loadedOptions.length > 0) {
+        const { data: scoreData, error: scoreError } = await supabase
+          .from("scores")
+          .select("option_id, criterion_id, value")
+          .in(
+            "option_id",
+            loadedOptions.map((option) => option.id),
+          );
+        if (scoreError) {
+          scoreFailed = true;
+        } else {
+          loadedScores = scoreData;
+        }
+      }
+
+      if (scoreFailed) {
+        loadErrorMessage = "Could not load your decision";
+      } else {
+        options = loadedOptions;
+        criteria = criterionRows;
+        scores = loadedScores;
+
+        const ranked = rankOptions(
+          options,
+          criteria,
+          scores.map((score) => ({ optionId: score.option_id, criterionId: score.criterion_id, value: score.value })),
+        );
+        if (ranked) {
+          const names = new Map(options.map((option) => [option.id, option.name]));
+          ranking = ranked.map((entry) => ({ ...entry, name: names.get(entry.optionId) ?? "" }));
+        }
+      }
     }
   } else if (!loadError) {
     showForm = true;
@@ -56,5 +93,7 @@ if (supabase && user) {
     decisionTitle={decisionTitle}
     options={options}
     criteria={criteria}
+    scores={scores}
+    ranking={ranking}
   />
 </Layout>

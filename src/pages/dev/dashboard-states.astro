@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import Layout from "@/layouts/Layout.astro";
 
 const option = { id: "option-1", name: "MacBook" };
+const secondOption = { id: "option-2", name: "ThinkPad" };
 const criterion = { id: "criterion-1", name: "Price", weight: 3 };
+const secondCriterion = { id: "criterion-2", name: "Battery", weight: 1 };
 const filled = {
   email: "owner@example.com",
   error: null,
@@ -14,6 +16,13 @@ const filled = {
   decisionTitle: "Which laptop?",
   options: [option],
   criteria: [criterion],
+  scores: [],
+  ranking: null,
+};
+const scored = {
+  ...filled,
+  options: [option, secondOption],
+  criteria: [criterion, secondCriterion],
 };
 ---
 
@@ -66,6 +75,8 @@ const filled = {
         decisionTitle={null}
         options={[]}
         criteria={[]}
+        scores={[]}
+        ranking={null}
       />
       <DecisionDashboard
         email="owner@example.com"
@@ -75,7 +86,48 @@ const filled = {
         decisionTitle="Which laptop?"
         options={[]}
         criteria={[]}
+        scores={[]}
+        ranking={null}
       />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Ranking with a tie</h2>
+      <DecisionDashboard
+        {...scored}
+        scores={[
+          { option_id: "option-1", criterion_id: "criterion-1", value: 4 },
+          { option_id: "option-1", criterion_id: "criterion-2", value: 2 },
+          { option_id: "option-2", criterion_id: "criterion-1", value: 4 },
+          { option_id: "option-2", criterion_id: "criterion-2", value: 2 },
+        ]}
+        ranking={[
+          { optionId: "option-1", name: "MacBook", total: 14, missing: 0, rank: 1 },
+          { optionId: "option-2", name: "ThinkPad", total: 14, missing: 0, rank: 1 },
+        ]}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Ranking with an incomplete option</h2>
+      <DecisionDashboard
+        {...scored}
+        scores={[
+          { option_id: "option-1", criterion_id: "criterion-1", value: 4 },
+          { option_id: "option-1", criterion_id: "criterion-2", value: 2 },
+          { option_id: "option-2", criterion_id: "criterion-1", value: 2 },
+        ]}
+        ranking={[
+          { optionId: "option-1", name: "MacBook", total: 14, missing: 0, rank: 1 },
+          { optionId: "option-2", name: "ThinkPad", total: 6, missing: 1, rank: 2 },
+        ]}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">No scores yet</h2>
+      <DecisionDashboard {...scored} />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Score save error</h2>
+      <DecisionDashboard {...scored} error="Enter scores from 1 to 5" />
     </section>
     <section class="space-y-3">
       <h2 class="text-lg font-semibold text-foreground">Loading</h2>
