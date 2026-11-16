@@ -260,31 +260,29 @@ No data or database change. The only global effect is `class="dark"` on `<html>`
 
 #### Automated
 
-- [x] 1.1 Linting passes: `npm run lint`
-- [x] 1.2 Type check passes with 0 errors: `npx astro check`
-- [x] 1.3 Build passes: `npm run build`
-- [x] 1.4 No literals in the three dashboard view files: `node scripts/scan-dashboard-literals.mjs`
-- [x] 1.5 No hex colour left in `global.css`: `rg -n "#[0-9a-fA-F]{3,8}\b" src/styles/global.css` returns no match
-
+- [x] 1.1 Linting passes: `npm run lint` — 56e0a0a
+- [x] 1.2 Type check passes with 0 errors: `npx astro check` — 56e0a0a
+- [x] 1.3 Build passes: `npm run build` — 56e0a0a
+- [x] 1.4 No literals in the three dashboard view files: `node scripts/scan-dashboard-literals.mjs` — 56e0a0a
+- [x] 1.5 No hex colour left in `global.css`: `rg -n "#[0-9a-fA-F]{3,8}\b" src/styles/global.css` returns no match — 56e0a0a
 #### Manual
 
-- [x] 1.6 `/dashboard` renders dark with cyan and violet accents at desktop and one mobile width, with no layout change.
-- [x] 1.7 `/auth/signin`, `/auth/signup` and `/` stay readable with the new palette (inherit it, no view edits).
-
+- [x] 1.6 `/dashboard` renders dark with cyan and violet accents at desktop and one mobile width, with no layout change. — 56e0a0a
+- [x] 1.7 `/auth/signin`, `/auth/signup` and `/` stay readable with the new palette (inherit it, no view edits). — 56e0a0a
 ### Phase 2: Dashboard view on shared components
 
 #### Automated
 
-- [ ] 2.1 Linting passes: `npm run lint`
-- [ ] 2.2 Type check passes with 0 errors: `npx astro check`
-- [ ] 2.3 Build passes: `npm run build`
-- [ ] 2.4 No literals in the three dashboard view files: `node scripts/scan-dashboard-literals.mjs`
-- [ ] 2.5 Smoke passes with unchanged text assertions: `npm run smoke`
+- [x] 2.1 Linting passes: `npm run lint`
+- [x] 2.2 Type check passes with 0 errors: `npx astro check`
+- [x] 2.3 Build passes: `npm run build`
+- [x] 2.4 No literals in the three dashboard view files: `node scripts/scan-dashboard-literals.mjs`
+- [x] 2.5 Smoke passes with unchanged text assertions: `npm run smoke`
 
 #### Manual
 
-- [ ] 2.6 Markers look like badges and error messages look like alerts, all from the shared components; the page card and the current decision show the glow.
-- [ ] 2.7 Tab key focus shows a visible cyan ring on every control, including the anchor controls.
+- [x] 2.6 Markers look like badges and error messages look like alerts, all from the shared components; the page card and the current decision show the glow.
+- [x] 2.7 Tab key focus shows a visible cyan ring on every control, including the anchor controls.
 
 ### Phase 3: States, contrast, gate and rule
 
