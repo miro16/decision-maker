@@ -8,13 +8,20 @@ const option = { id: "option-1", name: "MacBook" };
 const secondOption = { id: "option-2", name: "ThinkPad" };
 const criterion = { id: "criterion-1", name: "Price", weight: 3 };
 const secondCriterion = { id: "criterion-2", name: "Battery", weight: 1 };
+const currentDecision = { id: "decision-1", title: "Which laptop?" };
+const otherDecisions = [
+  { id: "decision-2", title: "Where to go on holiday?" },
+  { id: "decision-3", title: "Which city?" },
+];
 const filled = {
   email: "owner@example.com",
   error: null,
   loadErrorMessage: null,
-  showForm: false,
+  showForm: true,
+  decisions: [currentDecision, ...otherDecisions],
   decisionId: "decision-1",
   decisionTitle: "Which laptop?",
+  confirmDelete: false,
   options: [option],
   criteria: [criterion],
   scores: [],
@@ -32,6 +39,20 @@ const scored = {
     <section class="space-y-3">
       <h2 class="text-lg font-semibold text-foreground">Default</h2>
       <DecisionDashboard {...filled} />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Decision list</h2>
+      <p class="text-sm text-muted-foreground">
+        The current decision is highlighted and marked with aria-current. The two others are plain links.
+      </p>
+      <DecisionDashboard {...filled} />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Delete confirmation</h2>
+      <p class="text-sm text-muted-foreground">
+        Rendered by a GET with confirm=delete. Nothing is deleted until Delete permanently is posted.
+      </p>
+      <DecisionDashboard {...scored} confirmDelete={true} />
     </section>
     <section class="space-y-3">
       <h2 class="text-lg font-semibold text-foreground">Hover</h2>
@@ -67,14 +88,24 @@ const scored = {
       <DecisionDashboard {...filled} error="Could not save the option" />
     </section>
     <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Cap reached</h2>
+      <DecisionDashboard {...filled} error="You can have at most 20 decisions" />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Decision not found</h2>
+      <DecisionDashboard {...filled} error="Decision not found" />
+    </section>
+    <section class="space-y-3">
       <h2 class="text-lg font-semibold text-foreground">Empty</h2>
       <DecisionDashboard
         email="owner@example.com"
         error={null}
         loadErrorMessage={null}
         showForm={true}
+        decisions={[]}
         decisionId={null}
         decisionTitle={null}
+        confirmDelete={false}
         options={[]}
         criteria={[]}
         scores={[]}
@@ -84,9 +115,29 @@ const scored = {
         email="owner@example.com"
         error={null}
         loadErrorMessage={null}
-        showForm={false}
+        showForm={true}
+        decisions={[currentDecision]}
         decisionId="decision-1"
         decisionTitle="Which laptop?"
+        confirmDelete={false}
+        options={[]}
+        criteria={[]}
+        scores={[]}
+        ranking={null}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Load error</h2>
+      <p class="text-sm text-muted-foreground">A failed read shows the message, with no list and no add form.</p>
+      <DecisionDashboard
+        email="owner@example.com"
+        error={null}
+        loadErrorMessage="Could not load your decision"
+        showForm={false}
+        decisions={[]}
+        decisionId={null}
+        decisionTitle={null}
+        confirmDelete={false}
         options={[]}
         criteria={[]}
         scores={[]}

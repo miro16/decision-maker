@@ -224,29 +224,27 @@ The migration only drops a constraint and adds an index and two policies; it del
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly on a fresh local database: `npx supabase db reset`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Type check passes with 0 errors: `npx astro check`
-- [x] 1.4 Build passes: `npm run build`
-- [x] 1.5 Smoke passes with the new steps (several decisions, rename, delete with cascade, cap of 20, foreign `decision_id` refused, second account cannot rename or delete): `npm run smoke`
-
+- [x] 1.1 Migration applies cleanly on a fresh local database: `npx supabase db reset` — 0b0c2d9
+- [x] 1.2 Linting passes: `npm run lint` — 0b0c2d9
+- [x] 1.3 Type check passes with 0 errors: `npx astro check` — 0b0c2d9
+- [x] 1.4 Build passes: `npm run build` — 0b0c2d9
+- [x] 1.5 Smoke passes with the new steps (several decisions, rename, delete with cascade, cap of 20, foreign `decision_id` refused, second account cannot rename or delete): `npm run smoke` — 0b0c2d9
 #### Manual
 
-- [x] 1.6 On the local dev server, the existing flow (add options and criteria, enter scores, see the ranking) still works for a single decision after the forms send `decision_id`.
-
+- [x] 1.6 On the local dev server, the existing flow (add options and criteria, enter scores, see the ranking) still works for a single decision after the forms send `decision_id`. — 0b0c2d9
 ### Phase 2: Decision list, add, rename, delete confirmation
 
 #### Automated
 
-- [ ] 2.1 Linting passes: `npm run lint`
-- [ ] 2.2 Type check passes with 0 errors: `npx astro check`
-- [ ] 2.3 Build passes: `npm run build`
-- [ ] 2.4 No literal colours or arbitrary values in the dashboard view files: `node scripts/scan-dashboard-literals.mjs`
-- [ ] 2.5 Smoke passes with the selection, fallback, confirmation and delete steps: `npm run smoke`
+- [x] 2.1 Linting passes: `npm run lint`
+- [x] 2.2 Type check passes with 0 errors: `npx astro check`
+- [x] 2.3 Build passes: `npm run build`
+- [x] 2.4 No literal colours or arbitrary values in the dashboard view files: `node scripts/scan-dashboard-literals.mjs`
+- [x] 2.5 Smoke passes with the selection, fallback, confirmation and delete steps: `npm run smoke`
 
 #### Manual
 
-- [ ] 2.6 Two decisions with titles typed by the user: opening each shows only its own options, criteria, scores and ranking.
-- [ ] 2.7 Rename changes the title in the list and in the heading, and a blank title shows an error and changes nothing.
-- [ ] 2.8 Delete shows the confirmation with counts; Cancel changes nothing; "Delete permanently" removes the decision and lands on the newest remaining one; deleting the last decision shows the add form.
-- [ ] 2.9 `/dev/dashboard-states` shows the new states and has no horizontal overflow at desktop and one mobile width.
+- [x] 2.6 Two decisions with titles typed by the user: opening each shows only its own options, criteria, scores and ranking.
+- [x] 2.7 Rename changes the title in the list and in the heading, and a blank title shows an error and changes nothing.
+- [x] 2.8 Delete shows the confirmation with counts; Cancel changes nothing; "Delete permanently" removes the decision and lands on the newest remaining one; deleting the last decision shows the add form.
+- [x] 2.9 `/dev/dashboard-states` shows the new states and has no horizontal overflow at desktop and one mobile width.

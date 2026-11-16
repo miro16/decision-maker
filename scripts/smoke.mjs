@@ -2,12 +2,16 @@
 // and that decisions, options, criteria and scores stay private to their owner.
 // Zero dependencies on purpose. Run against a live server: BASE_URL=http://localhost:4321 node scripts/smoke.mjs
 
+import { randomUUID } from "node:crypto";
+
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4321";
 const email = `smoke-${Date.now()}@example.com`;
 const otherEmail = `smoke-other-${Date.now()}@example.com`;
+const flowEmail = `smoke-flow-${Date.now()}@example.com`;
 const password = "Smoke-Test-Passw0rd!";
 const ownerJar = new Map();
 const otherJar = new Map();
+const flowJar = new Map();
 
 function cookieHeader(cookieJar) {
   return [...cookieJar.entries()].map(([name, value]) => `${name}=${value}`).join("; ");
@@ -55,6 +59,9 @@ function rankingOnly(page) {
 // The decision the existing steps work on, read from the Location of the create redirect.
 let decisionId = "";
 let cityId = "";
+// The decisions of the fresh account that covers selection, fallback and the delete confirmation.
+let alphaId = "";
+let betaId = "";
 
 function idFromLocation(location) {
   return location.match(/^\/dashboard\?decision=([0-9a-f-]{36})$/i)?.[1] ?? "";
@@ -159,7 +166,11 @@ const steps = [
   [
     "dashboard has no stored title after blank rejection",
     () => request("/dashboard"),
-    { status: 200, bodyIncludes: ['name="title"'], bodyExcludes: ["Which laptop?", "Which city?"] },
+    {
+      status: 200,
+      bodyIncludes: ["What are you deciding?", 'name="title"'],
+      bodyExcludes: ["Which laptop?", "Which city?", "Your decisions"],
+    },
   ],
   [
     "owner creates Which laptop?",
@@ -176,7 +187,7 @@ const steps = [
   [
     "owner dashboard shows Which laptop?",
     () => request("/dashboard"),
-    { status: 200, bodyIncludes: ["Which laptop?"], bodyExcludes: ['name="title"'] },
+    { status: 200, bodyIncludes: ["Which laptop?", "Your decisions", 'aria-current="page"'] },
   ],
   ["blank option name is rejected", child("/api/options", { intent: "create", name: "" }), errorAt()],
   [
@@ -494,7 +505,8 @@ const steps = [
   [
     "dashboard shows the newest decision with its own children",
     () => request("/dashboard"),
-    { status: 200, bodyIncludes: ["Which city?"], bodyExcludes: ["Which laptop?", "N20", "Price (3)"] },
+    // The decision list names every decision, so only the children prove which decision is open.
+    { status: 200, bodyIncludes: ["Which city?", "Which laptop?"], bodyExcludes: ["N20", "Price (3)"] },
   ],
   [
     "owner renames the second decision",
@@ -504,7 +516,7 @@ const steps = [
   [
     "dashboard shows the new title and not the old one",
     () => request("/dashboard"),
-    { status: 200, bodyIncludes: ["Which town?"], bodyExcludes: ["Which city?", "Which laptop?"] },
+    { status: 200, bodyIncludes: ["Which town?", "Which laptop?"], bodyExcludes: ["Which city?"] },
   ],
   [
     "blank rename is rejected",
@@ -603,6 +615,157 @@ const steps = [
     "owner does not see the second account's decision",
     () => request("/dashboard"),
     { status: 200, bodyExcludes: ["Other decision"] },
+  ],
+  // Selection, fallback and the delete confirmation use a fresh account, because the owner account is at the cap.
+  [
+    "flow account signs up",
+    () => request("/api/auth/signup", { method: "POST", form: { email: flowEmail, password }, cookieJar: flowJar }),
+    { status: 302, location: "/auth/confirm-email" },
+  ],
+  [
+    "flow account signs in",
+    () => request("/api/auth/signin", { method: "POST", form: { email: flowEmail, password }, cookieJar: flowJar }),
+    { status: 302, location: "/" },
+  ],
+  [
+    "flow account creates Alpha decision",
+    async () => {
+      const result = await request("/api/decisions", {
+        method: "POST",
+        form: { intent: "create", title: "Alpha decision" },
+        cookieJar: flowJar,
+      });
+      alphaId = idFromLocation(result.location);
+      return result;
+    },
+    () => ({ status: 302, location: `/dashboard?decision=${alphaId}`, exactLocation: true }),
+  ],
+  [
+    "flow account creates Beta decision",
+    async () => {
+      const result = await request("/api/decisions", {
+        method: "POST",
+        form: { intent: "create", title: "Beta decision" },
+        cookieJar: flowJar,
+      });
+      betaId = idFromLocation(result.location);
+      return result;
+    },
+    () => ({ status: 302, location: `/dashboard?decision=${betaId}`, exactLocation: true }),
+  ],
+  [
+    "flow account adds AlphaOption to Alpha decision",
+    child("/api/options", { intent: "create", name: "AlphaOption" }, () => alphaId, flowJar),
+    ok(() => alphaId),
+  ],
+  [
+    "flow account adds BetaOption to Beta decision",
+    child("/api/options", { intent: "create", name: "BetaOption" }, () => betaId, flowJar),
+    ok(() => betaId),
+  ],
+  [
+    "dashboard without a selection opens the newest decision",
+    () => request("/dashboard", { cookieJar: flowJar }),
+    {
+      status: 200,
+      bodyIncludes: ["Your decisions", "Alpha decision", "Beta decision", "BetaOption"],
+      bodyExcludes: ["AlphaOption", "Decision not found"],
+    },
+  ],
+  [
+    "decision selected by id shows only its own options",
+    () => request(`/dashboard?decision=${alphaId}`, { cookieJar: flowJar }),
+    {
+      status: 200,
+      bodyIncludes: ["Alpha decision", "AlphaOption", 'aria-current="page"'],
+      bodyExcludes: ["BetaOption", "Decision not found"],
+    },
+  ],
+  [
+    "the other decision shows only its own options",
+    () => request(`/dashboard?decision=${betaId}`, { cookieJar: flowJar }),
+    { status: 200, bodyIncludes: ["Beta decision", "BetaOption"], bodyExcludes: ["AlphaOption", "Decision not found"] },
+  ],
+  [
+    "unknown decision id falls back to the newest decision with a message",
+    () => request(`/dashboard?decision=${randomUUID()}`, { cookieJar: flowJar }),
+    { status: 200, bodyIncludes: ["Decision not found", "BetaOption"], bodyExcludes: ["AlphaOption"] },
+  ],
+  [
+    "malformed decision id falls back to the newest decision with a message",
+    () => request("/dashboard?decision=not-a-uuid", { cookieJar: flowJar }),
+    { status: 200, bodyIncludes: ["Decision not found", "BetaOption"], bodyExcludes: ["AlphaOption"] },
+  ],
+  [
+    "another account's decision id is not found",
+    () => request(`/dashboard?decision=${decisionId}`, { cookieJar: flowJar }),
+    {
+      status: 200,
+      bodyIncludes: ["Decision not found", "BetaOption"],
+      bodyExcludes: ["AlphaOption", "Which laptop?", "N20"],
+    },
+  ],
+  [
+    "plain dashboard has no delete confirmation",
+    () => request(`/dashboard?decision=${alphaId}`, { cookieJar: flowJar }),
+    { status: 200, bodyIncludes: ["Delete decision"], bodyExcludes: ["Delete permanently"] },
+  ],
+  [
+    "confirm=delete renders the confirmation",
+    () => request(`/dashboard?decision=${alphaId}&confirm=delete`, { cookieJar: flowJar }),
+    { status: 200, bodyIncludes: ["Delete permanently", "Cancel", "Alpha decision"] },
+  ],
+  [
+    "the decision still exists after the confirm=delete GET",
+    () => request(`/dashboard?decision=${alphaId}`, { cookieJar: flowJar }),
+    {
+      status: 200,
+      bodyIncludes: ["Alpha decision", "Beta decision", "AlphaOption"],
+      bodyExcludes: ["Decision not found"],
+    },
+  ],
+  [
+    "confirming the delete of the newest decision redirects to the dashboard",
+    () => request("/api/decisions", { method: "POST", form: { intent: "delete", id: betaId }, cookieJar: flowJar }),
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "dashboard resolves to the newest remaining decision",
+    () => request("/dashboard", { cookieJar: flowJar }),
+    {
+      status: 200,
+      bodyIncludes: ["Alpha decision", "AlphaOption"],
+      bodyExcludes: ["Beta decision", "BetaOption", "Decision not found"],
+    },
+  ],
+  [
+    "confirm=delete without a decision parameter renders no confirmation",
+    () => request("/dashboard?confirm=delete", { cookieJar: flowJar }),
+    { status: 200, bodyIncludes: ["Alpha decision"], bodyExcludes: ["Delete permanently"] },
+  ],
+  [
+    "confirm=delete with an unknown decision id renders no confirmation",
+    () => request(`/dashboard?decision=${randomUUID()}&confirm=delete`, { cookieJar: flowJar }),
+    { status: 200, bodyIncludes: ["Decision not found"], bodyExcludes: ["Delete permanently"] },
+  ],
+  [
+    "confirming the delete of the last decision redirects to the dashboard",
+    () => request("/api/decisions", { method: "POST", form: { intent: "delete", id: alphaId }, cookieJar: flowJar }),
+    { status: 302, location: "/dashboard", exactLocation: true },
+  ],
+  [
+    "deleting the last decision shows the add form",
+    () => request("/dashboard", { cookieJar: flowJar }),
+    {
+      status: 200,
+      bodyIncludes: ["What are you deciding?", "Add decision"],
+      bodyExcludes: ["Alpha decision", "AlphaOption", "Your decisions", "Delete permanently"],
+    },
+  ],
+  [
+    "confirm=delete without any decision renders no confirmation",
+    () => request("/dashboard?confirm=delete", { cookieJar: flowJar }),
+    { status: 200, bodyIncludes: ["What are you deciding?"], bodyExcludes: ["Delete permanently"] },
   ],
   ["signout clears session", () => request("/api/auth/signout", { method: "POST" }), { status: 302, location: "/" }],
   ["dashboard redirects after signout", () => request("/dashboard"), { status: 302, location: "/auth/signin" }],
