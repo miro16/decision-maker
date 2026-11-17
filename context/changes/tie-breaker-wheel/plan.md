@@ -260,30 +260,30 @@ No data or database change. Rollback is reverting the change; nothing is stored.
 
 #### Automated
 
-- [x] 1.1 Linting passes: `npm run lint` — PENDINGSHA
-- [x] 1.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
-- [x] 1.3 Build passes: `npm run build` — PENDINGSHA
-- [x] 1.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
-- [x] 1.5 Smoke passes: `npm run smoke` — PENDINGSHA
+- [x] 1.1 Linting passes: `npm run lint` — 670bfc3
+- [x] 1.2 Type check passes with 0 errors: `npx astro check` — 670bfc3
+- [x] 1.3 Build passes: `npm run build` — 670bfc3
+- [x] 1.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — 670bfc3
+- [x] 1.5 Smoke passes: `npm run smoke` — 670bfc3
 
 #### Manual
 
-- [x] 1.6 With two options tied at first place and fully scored, `/dashboard` shows the Tie-breaker section listing exactly those options; with an incomplete option in the tie, or no tie, it does not. — PENDINGSHA
+- [x] 1.6 With two options tied at first place and fully scored, `/dashboard` shows the Tie-breaker section listing exactly those options; with an incomplete option in the tie, or no tie, it does not. — 670bfc3
 
 ### Phase 2: The wheel
 
 #### Automated
 
-- [ ] 2.1 Linting passes: `npm run lint`
-- [ ] 2.2 Type check passes with 0 errors: `npx astro check`
-- [ ] 2.3 Build passes: `npm run build`
-- [ ] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs`
-- [ ] 2.5 Smoke passes: `npm run smoke`
+- [x] 2.1 Linting passes: `npm run lint` — PENDINGSHA
+- [x] 2.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
+- [x] 2.3 Build passes: `npm run build` — PENDINGSHA
+- [x] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
+- [x] 2.5 Smoke passes: `npm run smoke` — PENDINGSHA
 
 #### Manual
 
-- [ ] 2.6 Pressing the button turns the wheel and stops with the pointer on the slice named in the result block; the block shows `Tie-break draw`, the name and the unchanged-ranking line; "Spin again" draws again.
-- [ ] 2.7 With reduced motion emulated, 300 draws on a two- or three-candidate wheel give every candidate roughly an equal share, and the table, totals and ranks never change.
+- [x] 2.6 Pressing the button turns the wheel and stops with the pointer on the slice named in the result block; the block shows `Tie-break draw`, the name and the unchanged-ranking line; "Spin again" draws again. — PENDINGSHA
+- [x] 2.7 With reduced motion emulated, 300 draws on a two- or three-candidate wheel give every candidate roughly an equal share, and the table, totals and ranks never change. — PENDINGSHA
 
 ### Phase 3: States, gate and rule
 

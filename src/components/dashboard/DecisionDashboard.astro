@@ -1,5 +1,6 @@
 ---
 import DecisionTable from "@/components/dashboard/DecisionTable.astro";
+import { TieBreakerWheel } from "@/components/tie-breaker/TieBreakerWheel";
 import { Alert } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -203,11 +204,7 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
                     {count(tieCandidates.length, "option", "options")} share first place with Total {tieTotal}. Spinning
                     does not change the ranking.
                   </p>
-                  <ul class="list-disc space-y-1 pl-5 text-sm text-foreground">
-                    {tieCandidates.map((candidate) => (
-                      <li>{candidate.name}</li>
-                    ))}
-                  </ul>
+                  <TieBreakerWheel candidates={tieCandidates} client:load />
                 </section>
               )}
               <section class="space-y-8">
