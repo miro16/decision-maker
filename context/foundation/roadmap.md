@@ -48,7 +48,7 @@ Przy wyborze z kilkoma opcjami i kryteriami o różnej wadze nie widać spójneg
 | S-05  | tie-breaker-wheel             | rozstrzygnąć remis na pierwszym miejscu kołem fortuny     | S-03          | US-03, FR-012                    | proposed |
 | S-06  | multiple-decisions            | mieć kilka własnych decyzji, nazwać je i usunąć           | S-03          | FR-009, FR-003                   | in-progress |
 | S-07  | futuristic-dashboard-ui       | widzieć dashboard w futurystycznym, ciemnym motywie neonowym | S-06       | (UI, bez nowego FR)              | in-progress |
-| S-08  | decision-table-view           | widzieć decyzję jako tabelę opcji i kryteriów z oceną      | S-03, S-07    | FR-006, FR-007                   | planning |
+| S-08  | decision-table-view           | widzieć decyzję jako tabelę opcji i kryteriów z oceną      | S-03, S-07    | FR-006, FR-007                   | in-progress |
 
 ## Baseline
 
@@ -173,7 +173,7 @@ Brak osobnych fundamentów. Konto i hosting są w Baseline. Izolacja kont oraz z
 - **Unknowns:**
   - Jak tabela zachowuje się przy 20 opcjach i 20 kryteriach (przyjęte: przewijanie poziome w kontenerze). — Owner: user. Block: no.
 - **Risk:** dotyka głównego widoku i jego stanów (`DecisionDashboard.astro`, `/dev/dashboard-states`); smoke asserts na tekstach sekcji Scores/Ranking trzeba przepisać świadomie; dostępność tabeli (nagłówki `scope`, etykiety pól w komórkach); brak zmian w API i bazie. Tryb `/10x-ui`: kontrakt tokenów, macierz stanów, bramka screenshotowa.
-- **Status:** planning
+- **Status:** in-progress
 
 ## Backlog Handoff
 

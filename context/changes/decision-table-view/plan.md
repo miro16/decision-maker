@@ -202,15 +202,15 @@ No data or database change. Rollback is reverting the change; the Scores and Ran
 
 #### Automated
 
-- [ ] 1.1 Linting passes: `npm run lint`
-- [ ] 1.2 Type check passes with 0 errors: `npx astro check`
-- [ ] 1.3 Build passes: `npm run build`
-- [ ] 1.4 Smoke passes: `npm run smoke`
+- [x] 1.1 Linting passes: `npm run lint` — PENDINGSHA
+- [x] 1.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
+- [x] 1.3 Build passes: `npm run build` — PENDINGSHA
+- [x] 1.4 Smoke passes: `npm run smoke` — PENDINGSHA
 
 #### Manual
 
-- [ ] 1.5 `/dashboard` shows the table: option names in the first column, one column per criterion with its weight, the score summary in the last column, and saving a row updates the total and rank.
-- [ ] 1.6 Add, rename and delete of options and criteria still work from the Manage section.
+- [x] 1.5 `/dashboard` shows the table: option names in the first column, one column per criterion with its weight, the score summary in the last column, and saving a row updates the total and rank. — PENDINGSHA
+- [x] 1.6 Add, rename and delete of options and criteria still work from the Manage section. — PENDINGSHA
 
 ### Phase 2: States, responsiveness, gate and rule
 
