@@ -264,31 +264,31 @@ No data or database change. Rollback is reverting the change.
 
 #### Automated
 
-- [x] 1.1 Linting passes: `npm run lint` — PENDINGSHA
-- [x] 1.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
-- [x] 1.3 Build passes: `npm run build` — PENDINGSHA
-- [x] 1.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
-- [x] 1.5 Smoke passes: `npm run smoke` — PENDINGSHA
+- [x] 1.1 Linting passes: `npm run lint` — 41c6f3b
+- [x] 1.2 Type check passes with 0 errors: `npx astro check` — 41c6f3b
+- [x] 1.3 Build passes: `npm run build` — 41c6f3b
+- [x] 1.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — 41c6f3b
+- [x] 1.5 Smoke passes: `npm run smoke` — 41c6f3b
 
 #### Manual
 
-- [x] 1.6 Decisions show as square tiles; the current one is highlighted; clicking another tile loads it; `New decision` opens a dialog that creates a decision. — PENDINGSHA
-- [x] 1.7 `Edit decision` opens a dialog with rename and `Delete decision`; the confirmation opens as a dialog on `?confirm=delete`, `Cancel` closes it, Esc and the backdrop close the other dialogs. — PENDINGSHA
+- [x] 1.6 Decisions show as square tiles; the current one is highlighted; clicking another tile loads it; `New decision` opens a dialog that creates a decision. — 41c6f3b
+- [x] 1.7 `Edit decision` opens a dialog with rename and `Delete decision`; the confirmation opens as a dialog on `?confirm=delete`, `Cancel` closes it, Esc and the backdrop close the other dialogs. — 41c6f3b
 
 ### Phase 2: Options and criteria dialogs
 
 #### Automated
 
-- [ ] 2.1 Linting passes: `npm run lint`
-- [ ] 2.2 Type check passes with 0 errors: `npx astro check`
-- [ ] 2.3 Build passes: `npm run build`
-- [ ] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs`
-- [ ] 2.5 Smoke passes: `npm run smoke`
+- [x] 2.1 Linting passes: `npm run lint` — PENDINGSHA
+- [x] 2.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
+- [x] 2.3 Build passes: `npm run build` — PENDINGSHA
+- [x] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
+- [x] 2.5 Smoke passes: `npm run smoke` — PENDINGSHA
 
 #### Manual
 
-- [ ] 2.6 `Options (n)` and `Criteria (n)` open their dialogs; adding an option reloads the page and the options dialog is open again with the new option; a failed save shows the error on the page and does not reopen the dialog.
-- [ ] 2.7 The page without dialogs open is short: tiles, header, table, wheel.
+- [x] 2.6 `Options (n)` and `Criteria (n)` open their dialogs; adding an option reloads the page and the options dialog is open again with the new option; a failed save shows the error on the page and does not reopen the dialog. — PENDINGSHA
+- [x] 2.7 The page without dialogs open is short: tiles, header, table, wheel. — PENDINGSHA
 
 ### Phase 3: States, gate and rule
 

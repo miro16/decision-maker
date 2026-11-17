@@ -6,8 +6,6 @@ import { TieBreakerWheel } from "@/components/tie-breaker/TieBreakerWheel";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 interface DecisionRow {
   id: string;
   title: string;
@@ -112,9 +110,17 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
                   <p class="text-sm text-muted-foreground">Decision</p>
                   <h2 class="text-xl font-semibold text-foreground">{decisionTitle}</h2>
                 </div>
-                <Button type="button" variant="outline" size="sm" data-dialog-open="dialog-edit-decision">
-                  Edit decision
-                </Button>
+                <div class="flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" size="sm" data-dialog-open="dialog-edit-decision">
+                    Edit decision
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" data-dialog-open="dialog-options">
+                    Options ({options.length})
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" data-dialog-open="dialog-criteria">
+                    Criteria ({criteria.length})
+                  </Button>
+                </div>
               </section>
               <section class="space-y-3">
                 <h2 class="text-lg font-semibold text-foreground">Decision table</h2>
@@ -142,126 +148,6 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
                   <TieBreakerWheel candidates={tieCandidates} previewWinnerId={tieWinnerId} client:load />
                 </section>
               )}
-              <section class="space-y-8">
-                <h2 class="text-lg font-semibold text-foreground">Manage options and criteria</h2>
-                <section class="space-y-3">
-                  <h3 class="text-base font-semibold text-foreground">Options</h3>
-                  {options.length === 0 && <p class="text-sm text-muted-foreground">No options yet.</p>}
-                  {options.map((option) => (
-                    <Card className="gap-0 rounded-lg py-3 shadow-none">
-                      <CardContent className="px-3">
-                        <div class="space-y-2">
-                          <p class="text-sm font-medium text-foreground">{option.name}</p>
-                          <form method="POST" action="/api/options" class="space-y-2">
-                            <input type="hidden" name="decision_id" value={decisionId} />
-                            <input type="hidden" name="intent" value="update" />
-                            <input type="hidden" name="id" value={option.id} />
-                            <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                              Name
-                              <Input
-                                type="text"
-                                name="name"
-                                value={option.name}
-                                maxLength={200}
-                                className="text-foreground"
-                              />
-                            </Label>
-                            <Button type="submit" variant="outline" size="sm">
-                              Save
-                            </Button>
-                          </form>
-                          <form method="POST" action="/api/options">
-                            <input type="hidden" name="decision_id" value={decisionId} />
-                            <input type="hidden" name="intent" value="delete" />
-                            <input type="hidden" name="id" value={option.id} />
-                            <Button type="submit" variant="destructive" size="sm">
-                              Delete
-                            </Button>
-                          </form>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {options.length < 20 && (
-                    <form method="POST" action="/api/options" class="space-y-2">
-                      <input type="hidden" name="decision_id" value={decisionId} />
-                      <input type="hidden" name="intent" value="create" />
-                      <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                        Option
-                        <Input type="text" name="name" maxLength={200} className="text-foreground" />
-                      </Label>
-                      <Button type="submit">Add option</Button>
-                    </form>
-                  )}
-                </section>
-                <section class="space-y-3">
-                  <h3 class="text-base font-semibold text-foreground">Criteria</h3>
-                  {criteria.length === 0 && <p class="text-sm text-muted-foreground">No criteria yet.</p>}
-                  {criteria.map((criterion) => (
-                    <Card className="gap-0 rounded-lg py-3 shadow-none">
-                      <CardContent className="px-3">
-                        <div class="space-y-2">
-                          <p class="text-sm font-medium text-foreground">
-                            {criterion.name} ({criterion.weight})
-                          </p>
-                          <form method="POST" action="/api/criteria" class="space-y-2">
-                            <input type="hidden" name="decision_id" value={decisionId} />
-                            <input type="hidden" name="intent" value="update" />
-                            <input type="hidden" name="id" value={criterion.id} />
-                            <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                              Name
-                              <Input
-                                type="text"
-                                name="name"
-                                value={criterion.name}
-                                maxLength={200}
-                                className="text-foreground"
-                              />
-                            </Label>
-                            <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                              Weight
-                              <Input
-                                type="number"
-                                name="weight"
-                                min={1}
-                                max={5}
-                                value={criterion.weight}
-                                className="text-foreground"
-                              />
-                            </Label>
-                            <Button type="submit" variant="outline" size="sm">
-                              Save
-                            </Button>
-                          </form>
-                          <form method="POST" action="/api/criteria">
-                            <input type="hidden" name="decision_id" value={decisionId} />
-                            <input type="hidden" name="intent" value="delete" />
-                            <input type="hidden" name="id" value={criterion.id} />
-                            <Button type="submit" variant="destructive" size="sm">
-                              Delete
-                            </Button>
-                          </form>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {criteria.length < 20 && (
-                    <form method="POST" action="/api/criteria" class="space-y-2">
-                      <input type="hidden" name="decision_id" value={decisionId} />
-                      <input type="hidden" name="intent" value="create" />
-                      <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                        Criterion
-                        <Input type="text" name="name" maxLength={200} className="text-foreground" />
-                      </Label>
-                      <Label className="flex-col items-stretch gap-1 text-muted-foreground">
-                        Weight
-                        <Input type="number" name="weight" min={1} max={5} className="text-foreground" />
-                      </Label>
-                      <Button type="submit">Add criterion</Button>
-                    </form>
-                  )}
-                </section>
-              </section>
             </div>
           )}
           <DecisionDialogs
@@ -271,8 +157,8 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
             confirmDelete={confirmDelete}
             decisionHref={decisionHref}
             deleteHref={deleteHref}
-            optionCount={options.length}
-            criterionCount={criteria.length}
+            options={options}
+            criteria={criteria}
             preview={previewDialogs}
           />
         </div>

@@ -1,9 +1,21 @@
 ---
+import { Card, CardContent } from "@/components/ui/card";
 import Modal from "@/components/ui/Modal.astro";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+
+interface OptionRow {
+  id: string;
+  name: string;
+}
+
+interface CriterionRow {
+  id: string;
+  name: string;
+  weight: number;
+}
 
 interface Props {
   showForm: boolean;
@@ -12,8 +24,8 @@ interface Props {
   confirmDelete: boolean;
   decisionHref: string;
   deleteHref: string;
-  optionCount: number;
-  criterionCount: number;
+  options: OptionRow[];
+  criteria: CriterionRow[];
   preview?: boolean;
 }
 
@@ -24,8 +36,8 @@ const {
   confirmDelete,
   decisionHref,
   deleteHref,
-  optionCount,
-  criterionCount,
+  options,
+  criteria,
   preview = false,
 } = Astro.props;
 
@@ -71,8 +83,8 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
   <Modal id="dialog-confirm-delete" title="Delete decision" autoOpen={true} preview={preview}>
     <div class="space-y-3">
       <p class="text-sm text-foreground">
-        Deleting "{decisionTitle}" also deletes its {count(optionCount, "option", "options")},{" "}
-        {count(criterionCount, "criterion", "criteria")} and all scores. This cannot be undone.
+        Deleting "{decisionTitle}" also deletes its {count(options.length, "option", "options")},{" "}
+        {count(criteria.length, "criterion", "criteria")} and all scores. This cannot be undone.
       </p>
       <div class="flex flex-wrap items-center gap-3">
         <form method="POST" action="/api/decisions">
@@ -86,6 +98,118 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
           Cancel
         </a>
       </div>
+    </div>
+  </Modal>
+)}
+
+{decisionTitle !== null && (
+  <Modal id="dialog-options" title="Manage options" keepOpen={true} preview={preview}>
+    <div class="space-y-3">
+      {options.length === 0 && <p class="text-sm text-muted-foreground">No options yet.</p>}
+      {options.map((option) => (
+        <Card className="gap-0 rounded-lg py-3 shadow-none">
+          <CardContent className="px-3">
+            <div class="space-y-2">
+              <p class="text-sm font-medium text-foreground">{option.name}</p>
+              <form method="POST" action="/api/options" class="space-y-2">
+                <input type="hidden" name="decision_id" value={decisionId} />
+                <input type="hidden" name="intent" value="update" />
+                <input type="hidden" name="id" value={option.id} />
+                <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+                  Name
+                  <Input type="text" name="name" value={option.name} maxLength={200} className="text-foreground" />
+                </Label>
+                <Button type="submit" variant="outline" size="sm">
+                  Save
+                </Button>
+              </form>
+              <form method="POST" action="/api/options">
+                <input type="hidden" name="decision_id" value={decisionId} />
+                <input type="hidden" name="intent" value="delete" />
+                <input type="hidden" name="id" value={option.id} />
+                <Button type="submit" variant="destructive" size="sm">
+                  Delete
+                </Button>
+              </form>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+      {options.length < 20 && (
+        <form method="POST" action="/api/options" class="space-y-2">
+          <input type="hidden" name="decision_id" value={decisionId} />
+          <input type="hidden" name="intent" value="create" />
+          <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+            Option
+            <Input type="text" name="name" maxLength={200} className="text-foreground" />
+          </Label>
+          <Button type="submit">Add option</Button>
+        </form>
+      )}
+    </div>
+  </Modal>
+)}
+{decisionTitle !== null && (
+  <Modal id="dialog-criteria" title="Manage criteria" keepOpen={true} preview={preview}>
+    <div class="space-y-3">
+      {criteria.length === 0 && <p class="text-sm text-muted-foreground">No criteria yet.</p>}
+      {criteria.map((criterion) => (
+        <Card className="gap-0 rounded-lg py-3 shadow-none">
+          <CardContent className="px-3">
+            <div class="space-y-2">
+              <p class="text-sm font-medium text-foreground">
+                {criterion.name} ({criterion.weight})
+              </p>
+              <form method="POST" action="/api/criteria" class="space-y-2">
+                <input type="hidden" name="decision_id" value={decisionId} />
+                <input type="hidden" name="intent" value="update" />
+                <input type="hidden" name="id" value={criterion.id} />
+                <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+                  Name
+                  <Input type="text" name="name" value={criterion.name} maxLength={200} className="text-foreground" />
+                </Label>
+                <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+                  Weight
+                  <Input
+                    type="number"
+                    name="weight"
+                    min={1}
+                    max={5}
+                    value={criterion.weight}
+                    className="text-foreground"
+                  />
+                </Label>
+                <Button type="submit" variant="outline" size="sm">
+                  Save
+                </Button>
+              </form>
+              <form method="POST" action="/api/criteria">
+                <input type="hidden" name="decision_id" value={decisionId} />
+                <input type="hidden" name="intent" value="delete" />
+                <input type="hidden" name="id" value={criterion.id} />
+                <Button type="submit" variant="destructive" size="sm">
+                  Delete
+                </Button>
+              </form>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+      {criteria.length < 20 && (
+        <form method="POST" action="/api/criteria" class="space-y-2">
+          <input type="hidden" name="decision_id" value={decisionId} />
+          <input type="hidden" name="intent" value="create" />
+          <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+            Criterion
+            <Input type="text" name="name" maxLength={200} className="text-foreground" />
+          </Label>
+          <Label className="flex-col items-stretch gap-1 text-muted-foreground">
+            Weight
+            <Input type="number" name="weight" min={1} max={5} className="text-foreground" />
+          </Label>
+          <Button type="submit">Add criterion</Button>
+        </form>
+      )}
     </div>
   </Modal>
 )}
