@@ -1,7 +1,7 @@
 ---
 change_id: futuristic-dashboard-ui
 title: Futuristic neon-dark theme for the dashboard
-status: implementing
+status: implemented
 created: 2026-11-16
 updated: 2026-11-17
 archived_at: null

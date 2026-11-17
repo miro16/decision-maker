@@ -288,15 +288,15 @@ No data or database change. The only global effect is `class="dark"` on `<html>`
 
 #### Automated
 
-- [x] 3.1 Linting passes: `npm run lint` — PENDINGSHA
-- [x] 3.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
-- [x] 3.3 Build passes: `npm run build` — PENDINGSHA
-- [x] 3.4 No literals in the three dashboard view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
-- [x] 3.5 Smoke passes: `npm run smoke` — PENDINGSHA
+- [x] 3.1 Linting passes: `npm run lint` — ffad28a
+- [x] 3.2 Type check passes with 0 errors: `npx astro check` — ffad28a
+- [x] 3.3 Build passes: `npm run build` — ffad28a
+- [x] 3.4 No literals in the three dashboard view files: `node scripts/scan-dashboard-literals.mjs` — ffad28a
+- [x] 3.5 Smoke passes: `npm run smoke` — ffad28a
 
 #### Manual
 
-- [x] 3.6 `/dev/dashboard-states` shows default, hover, focus-visible, disabled, error, empty and load error, with `loading` marked N/A with a reason. — PENDINGSHA
-- [x] 3.7 The measured contrast ratios for the listed pairs meet the targets and are recorded in `tokens.md`. — PENDINGSHA
-- [x] 3.8 Screenshots at desktop and mobile width show no horizontal overflow for `/dashboard`, `/dev/dashboard-states` and `/auth/signin`. — PENDINGSHA
-- [x] 3.9 `AGENTS.md` names the token and glow locations, the default dark class and the new components. — PENDINGSHA
+- [x] 3.6 `/dev/dashboard-states` shows default, hover, focus-visible, disabled, error, empty and load error, with `loading` marked N/A with a reason. — ffad28a
+- [x] 3.7 The measured contrast ratios for the listed pairs meet the targets and are recorded in `tokens.md`. — ffad28a
+- [x] 3.8 Screenshots at desktop and mobile width show no horizontal overflow for `/dashboard`, `/dev/dashboard-states` and `/auth/signin`. — ffad28a
+- [x] 3.9 `AGENTS.md` names the token and glow locations, the default dark class and the new components. — ffad28a
