@@ -117,9 +117,16 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
                 <input type="hidden" name="id" value={option.id} />
                 <Label className="flex-col items-stretch gap-1 text-muted-foreground">
                   Name
-                  <Input type="text" name="name" value={option.name} maxLength={200} className="text-foreground" />
+                  <Input
+                    type="text"
+                    name="name"
+                    value={option.name}
+                    maxLength={200}
+                    className="text-foreground"
+                    aria-label={`Name of ${option.name}`}
+                  />
                 </Label>
-                <Button type="submit" variant="outline" size="sm">
+                <Button type="submit" variant="outline" size="sm" aria-label={`Save ${option.name}`}>
                   Save
                 </Button>
               </form>
@@ -127,7 +134,7 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
                 <input type="hidden" name="decision_id" value={decisionId} />
                 <input type="hidden" name="intent" value="delete" />
                 <input type="hidden" name="id" value={option.id} />
-                <Button type="submit" variant="destructive" size="sm">
+                <Button type="submit" variant="destructive" size="sm" aria-label={`Delete ${option.name}`}>
                   Delete
                 </Button>
               </form>
@@ -166,7 +173,14 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
                 <input type="hidden" name="id" value={criterion.id} />
                 <Label className="flex-col items-stretch gap-1 text-muted-foreground">
                   Name
-                  <Input type="text" name="name" value={criterion.name} maxLength={200} className="text-foreground" />
+                  <Input
+                    type="text"
+                    name="name"
+                    value={criterion.name}
+                    maxLength={200}
+                    className="text-foreground"
+                    aria-label={`Name of ${criterion.name}`}
+                  />
                 </Label>
                 <Label className="flex-col items-stretch gap-1 text-muted-foreground">
                   Weight
@@ -179,7 +193,7 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
                     className="text-foreground"
                   />
                 </Label>
-                <Button type="submit" variant="outline" size="sm">
+                <Button type="submit" variant="outline" size="sm" aria-label={`Save ${criterion.name}`}>
                   Save
                 </Button>
               </form>
@@ -187,7 +201,7 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
                 <input type="hidden" name="decision_id" value={decisionId} />
                 <input type="hidden" name="intent" value="delete" />
                 <input type="hidden" name="id" value={criterion.id} />
-                <Button type="submit" variant="destructive" size="sm">
+                <Button type="submit" variant="destructive" size="sm" aria-label={`Delete ${criterion.name}`}>
                   Delete
                 </Button>
               </form>

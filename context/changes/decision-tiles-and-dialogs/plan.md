@@ -279,31 +279,31 @@ No data or database change. Rollback is reverting the change.
 
 #### Automated
 
-- [x] 2.1 Linting passes: `npm run lint` — PENDINGSHA
-- [x] 2.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
-- [x] 2.3 Build passes: `npm run build` — PENDINGSHA
-- [x] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
-- [x] 2.5 Smoke passes: `npm run smoke` — PENDINGSHA
+- [x] 2.1 Linting passes: `npm run lint` — 344eefc
+- [x] 2.2 Type check passes with 0 errors: `npx astro check` — 344eefc
+- [x] 2.3 Build passes: `npm run build` — 344eefc
+- [x] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — 344eefc
+- [x] 2.5 Smoke passes: `npm run smoke` — 344eefc
 
 #### Manual
 
-- [x] 2.6 `Options (n)` and `Criteria (n)` open their dialogs; adding an option reloads the page and the options dialog is open again with the new option; a failed save shows the error on the page and does not reopen the dialog. — PENDINGSHA
-- [x] 2.7 The page without dialogs open is short: tiles, header, table, wheel. — PENDINGSHA
+- [x] 2.6 `Options (n)` and `Criteria (n)` open their dialogs; adding an option reloads the page and the options dialog is open again with the new option; a failed save shows the error on the page and does not reopen the dialog. — 344eefc
+- [x] 2.7 The page without dialogs open is short: tiles, header, table, wheel. — 344eefc
 
 ### Phase 3: States, gate and rule
 
 #### Automated
 
-- [ ] 3.1 Linting passes: `npm run lint`
-- [ ] 3.2 Type check passes with 0 errors: `npx astro check`
-- [ ] 3.3 Build passes: `npm run build`
-- [ ] 3.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs`
-- [ ] 3.5 Smoke passes: `npm run smoke`
+- [x] 3.1 Linting passes: `npm run lint` — PENDINGSHA
+- [x] 3.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
+- [x] 3.3 Build passes: `npm run build` — PENDINGSHA
+- [x] 3.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
+- [x] 3.5 Smoke passes: `npm run smoke` — PENDINGSHA
 
 #### Manual
 
-- [ ] 3.6 `/dev/dashboard-states` shows the tile grid, the five dialogs open and the existing states, with `loading` and `logged out` marked N/A.
-- [ ] 3.7 The measured contrast is recorded in `tokens.md` (text 4.5:1, border and ring 3:1).
-- [ ] 3.8 At 390 px tiles and dialogs fit with no horizontal page overflow, and a long dialog scrolls inside the viewport.
-- [ ] 3.9 Tab reaches tiles and buttons with the cyan ring; Esc closes a dialog and focus returns to its button.
-- [ ] 3.10 `AGENTS.md` names the new components, the `data-dialog-open` pattern and the no-React-dialog rule.
+- [x] 3.6 `/dev/dashboard-states` shows the tile grid, the five dialogs open and the existing states, with `loading` and `logged out` marked N/A. — PENDINGSHA
+- [x] 3.7 The measured contrast is recorded in `tokens.md` (text 4.5:1, border and ring 3:1). — PENDINGSHA
+- [x] 3.8 At 390 px tiles and dialogs fit with no horizontal page overflow, and a long dialog scrolls inside the viewport. — PENDINGSHA
+- [x] 3.9 Tab reaches tiles and buttons with the cyan ring; Esc closes a dialog and focus returns to its button. — PENDINGSHA
+- [x] 3.10 `AGENTS.md` names the new components, the `data-dialog-open` pattern and the no-React-dialog rule. — PENDINGSHA

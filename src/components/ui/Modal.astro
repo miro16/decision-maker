@@ -24,7 +24,7 @@ const { id, title, autoOpen = false, keepOpen = false, preview = false } = Astro
   data-keep-open={keepOpen ? "" : undefined}
   class:list={cn(
     "m-auto max-h-11/12 w-11/12 max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-0 text-card-foreground shadow-glow backdrop:bg-background/80 backdrop:backdrop-blur-sm",
-    preview && "static",
+    preview && "static my-4",
   )}
 >
   <div class="flex items-center justify-between gap-4 border-b border-border px-4 py-3">

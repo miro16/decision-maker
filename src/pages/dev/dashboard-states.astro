@@ -59,6 +59,14 @@ const bigRanking = bigOptions.map((bigOption, index) => ({
   missing: index % 3 === 0 ? 2 : 0,
   rank: index + 1,
 }));
+// Twenty decisions with long titles for the tile grid.
+const manyDecisions = Array.from({ length: 20 }, (_, index) => ({
+  id: `many-decision-${index + 1}`,
+  title:
+    index % 5 === 2
+      ? `A decision with a long title that must be clamped inside its tile ${index + 1}`
+      : `Decision ${index + 1}`,
+}));
 // Tie-breaker wheel inputs. The page derives these with tieBreakCandidates; the sink passes them directly.
 const thirdOption = { id: "option-3", name: "Dell XPS" };
 const threeOptions = [option, secondOption, thirdOption];
@@ -93,16 +101,48 @@ const wheelRanking = wheelOptions.map((wheelOption) => ({
     <section class="space-y-3">
       <h2 class="text-lg font-semibold text-foreground">Decision list</h2>
       <p class="text-sm text-muted-foreground">
-        The current decision is highlighted and marked with aria-current. The two others are plain links.
+        Square tiles: the current decision is highlighted with the glow and marked with aria-current, the others are
+        plain links, and the dashed tile opens the New decision dialog.
       </p>
       <DecisionDashboard {...filled} />
     </section>
     <section class="space-y-3">
       <h2 class="text-lg font-semibold text-foreground">Delete confirmation</h2>
       <p class="text-sm text-muted-foreground">
-        Rendered by a GET with confirm=delete. Nothing is deleted until Delete permanently is posted.
+        Rendered by a GET with confirm=delete. On the real page it opens as a modal dialog on load (shown inline here).
+        Nothing is deleted until Delete permanently is posted.
       </p>
-      <DecisionDashboard {...scored} confirmDelete={true} />
+      <DecisionDashboard {...scored} confirmDelete={true} previewDialogs={true} />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Tiles with 20 decisions</h2>
+      <p class="text-sm text-muted-foreground">
+        The cap. Long titles are clamped to four lines inside the square. The New decision tile is gone at the cap.
+      </p>
+      <DecisionDashboard
+        {...filled}
+        decisions={manyDecisions}
+        decisionId="many-decision-3"
+        decisionTitle={manyDecisions[2].title}
+        showForm={false}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Dialogs: new, edit, options and criteria</h2>
+      <p class="text-sm text-muted-foreground">
+        The four dialogs of a decision, shown open and inline. On the real page each one opens as a modal from its
+        button, closes with the X button, Escape or a click on the backdrop, and Options and Criteria reopen after a
+        save.
+      </p>
+      <DecisionDashboard {...scored} previewDialogs={true} />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Options dialog with 20 options</h2>
+      <p class="text-sm text-muted-foreground">
+        The most the caps allow, with long names. The add form is gone at the cap. The dialog scrolls inside the
+        viewport.
+      </p>
+      <DecisionDashboard {...filled} options={bigOptions} criteria={bigCriteria} previewDialogs={true} />
     </section>
     <section class="space-y-3">
       <h2 class="text-lg font-semibold text-foreground">Hover</h2>

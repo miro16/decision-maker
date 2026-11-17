@@ -8,6 +8,9 @@ const files = [
   "src/pages/dev/dashboard-states.astro",
   "src/components/tie-breaker/TieBreakerWheel.tsx",
   "src/components/hooks/useWheelSpin.ts",
+  "src/components/ui/Modal.astro",
+  "src/components/dashboard/DecisionTiles.astro",
+  "src/components/dashboard/DecisionDialogs.astro",
 ];
 
 const literal =
