@@ -1,0 +1,91 @@
+---
+import Modal from "@/components/ui/Modal.astro";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  showForm: boolean;
+  decisionId: string | null;
+  decisionTitle: string | null;
+  confirmDelete: boolean;
+  decisionHref: string;
+  deleteHref: string;
+  optionCount: number;
+  criterionCount: number;
+  preview?: boolean;
+}
+
+const {
+  showForm,
+  decisionId,
+  decisionTitle,
+  confirmDelete,
+  decisionHref,
+  deleteHref,
+  optionCount,
+  criterionCount,
+  preview = false,
+} = Astro.props;
+
+const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ? singular : plural}`;
+---
+
+{showForm && (
+  <Modal id="dialog-new-decision" title="New decision" preview={preview}>
+    <form method="POST" action="/api/decisions" class="space-y-3">
+      <input type="hidden" name="intent" value="create" />
+      <p class="text-sm text-muted-foreground">Name the decision you want to make.</p>
+      <Label htmlFor="decision-title">What are you deciding?</Label>
+      <Input id="decision-title" type="text" name="title" maxLength={200} data-autofocus />
+      <Button type="submit">Add decision</Button>
+    </form>
+  </Modal>
+)}
+{decisionTitle !== null && (
+  <Modal id="dialog-edit-decision" title="Edit decision" preview={preview}>
+    <form method="POST" action="/api/decisions" class="space-y-2">
+      <input type="hidden" name="intent" value="rename" />
+      <input type="hidden" name="id" value={decisionId} />
+      <Label htmlFor="decision-rename-title">Title</Label>
+      <Input id="decision-rename-title" type="text" name="title" value={decisionTitle} maxLength={200} data-autofocus />
+      <Button type="submit" variant="outline">
+        Rename
+      </Button>
+    </form>
+    {!confirmDelete && (
+      <a
+        href={deleteHref}
+        class:list={cn(
+          buttonVariants({ variant: "outline", size: "sm" }),
+          "border-destructive text-destructive dark:border-destructive",
+        )}
+      >
+        Delete decision
+      </a>
+    )}
+  </Modal>
+)}
+{decisionTitle !== null && confirmDelete && (
+  <Modal id="dialog-confirm-delete" title="Delete decision" autoOpen={true} preview={preview}>
+    <div class="space-y-3">
+      <p class="text-sm text-foreground">
+        Deleting "{decisionTitle}" also deletes its {count(optionCount, "option", "options")},{" "}
+        {count(criterionCount, "criterion", "criteria")} and all scores. This cannot be undone.
+      </p>
+      <div class="flex flex-wrap items-center gap-3">
+        <form method="POST" action="/api/decisions">
+          <input type="hidden" name="intent" value="delete" />
+          <input type="hidden" name="id" value={decisionId} />
+          <Button type="submit" variant="destructive">
+            Delete permanently
+          </Button>
+        </form>
+        <a href={decisionHref} class:list={buttonVariants({ variant: "outline" })} data-autofocus>
+          Cancel
+        </a>
+      </div>
+    </div>
+  </Modal>
+)}

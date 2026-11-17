@@ -1,7 +1,7 @@
 ---
 change_id: decision-tiles-and-dialogs
 title: Decisions shown as square tiles and editing moved into dialogs
-status: planned
+status: implementing
 created: 2026-11-17
 updated: 2026-11-17
 archived_at: null

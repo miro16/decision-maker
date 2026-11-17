@@ -1,12 +1,13 @@
 ---
+import DecisionDialogs from "@/components/dashboard/DecisionDialogs.astro";
 import DecisionTable from "@/components/dashboard/DecisionTable.astro";
+import DecisionTiles from "@/components/dashboard/DecisionTiles.astro";
 import { TieBreakerWheel } from "@/components/tie-breaker/TieBreakerWheel";
 import { Alert } from "@/components/ui/alert";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 interface DecisionRow {
   id: string;
   title: string;
@@ -54,6 +55,8 @@ interface Props {
   tieTotal?: number | null;
   /** State sink only: shows a finished draw for this option without spinning. */
   tieWinnerId?: string;
+  /** State sink only: renders every dialog open and inline. */
+  previewDialogs?: boolean;
 }
 
 const {
@@ -72,6 +75,7 @@ const {
   tieCandidates = [],
   tieTotal = null,
   tieWinnerId,
+  previewDialogs = false,
 } = Astro.props;
 
 const canScore = options.length > 0 && criteria.length > 0;
@@ -100,89 +104,17 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
         </Alert>
       ) : (
         <div class="space-y-8">
-          {decisions.length > 0 && (
-            <section class="space-y-3">
-              <h2 class="text-lg font-semibold text-foreground">Your decisions</h2>
-              <ul class="space-y-2">
-                {decisions.map((decision) => (
-                  <li>
-                    <a
-                      href={`/dashboard?decision=${encodeURIComponent(decision.id)}`}
-                      aria-current={decision.id === decisionId ? "page" : undefined}
-                      class:list={cn(
-                        buttonVariants({ variant: "outline" }),
-                        "h-auto w-full justify-start whitespace-normal py-2 text-left break-words",
-                        decision.id === decisionId &&
-                          "bg-accent font-semibold text-accent-foreground shadow-glow! dark:bg-accent dark:hover:bg-accent",
-                      )}
-                    >
-                      {decision.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-          {showForm && (
-            <form method="POST" action="/api/decisions" class="space-y-3">
-              <input type="hidden" name="intent" value="create" />
-              <p class="text-sm text-muted-foreground">Name the decision you want to make.</p>
-              <Label htmlFor="decision-title">What are you deciding?</Label>
-              <Input id="decision-title" type="text" name="title" maxLength={200} />
-              <Button type="submit">Add decision</Button>
-            </form>
-          )}
+          <DecisionTiles decisions={decisions} decisionId={decisionId} showForm={showForm} />
           {decisionTitle !== null && (
             <div class="space-y-8">
-              <section class="space-y-3">
+              <section class="flex flex-wrap items-start justify-between gap-3">
                 <div class="space-y-1">
                   <p class="text-sm text-muted-foreground">Decision</p>
                   <h2 class="text-xl font-semibold text-foreground">{decisionTitle}</h2>
                 </div>
-                <form method="POST" action="/api/decisions" class="space-y-2">
-                  <input type="hidden" name="intent" value="rename" />
-                  <input type="hidden" name="id" value={decisionId} />
-                  <Label htmlFor="decision-rename-title">Title</Label>
-                  <Input id="decision-rename-title" type="text" name="title" value={decisionTitle} maxLength={200} />
-                  <Button type="submit" variant="outline">
-                    Rename
-                  </Button>
-                </form>
-                {!confirmDelete && (
-                  <a
-                    href={deleteHref}
-                    class:list={cn(
-                      buttonVariants({ variant: "outline", size: "sm" }),
-                      "border-destructive text-destructive dark:border-destructive",
-                    )}
-                  >
-                    Delete decision
-                  </a>
-                )}
-                {confirmDelete && (
-                  <Card className="gap-0 rounded-lg border-destructive py-3 shadow-none">
-                    <CardContent className="px-3">
-                      <div class="space-y-3">
-                        <p class="text-sm text-foreground">
-                          Deleting "{decisionTitle}" also deletes its {count(options.length, "option", "options")},{" "}
-                          {count(criteria.length, "criterion", "criteria")} and all scores. This cannot be undone.
-                        </p>
-                        <div class="flex flex-wrap items-center gap-3">
-                          <form method="POST" action="/api/decisions">
-                            <input type="hidden" name="intent" value="delete" />
-                            <input type="hidden" name="id" value={decisionId} />
-                            <Button type="submit" variant="destructive">
-                              Delete permanently
-                            </Button>
-                          </form>
-                          <a href={decisionHref} class:list={buttonVariants({ variant: "outline" })}>
-                            Cancel
-                          </a>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                <Button type="button" variant="outline" size="sm" data-dialog-open="dialog-edit-decision">
+                  Edit decision
+                </Button>
               </section>
               <section class="space-y-3">
                 <h2 class="text-lg font-semibold text-foreground">Decision table</h2>
@@ -332,6 +264,17 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
               </section>
             </div>
           )}
+          <DecisionDialogs
+            showForm={showForm}
+            decisionId={decisionId}
+            decisionTitle={decisionTitle}
+            confirmDelete={confirmDelete}
+            decisionHref={decisionHref}
+            deleteHref={deleteHref}
+            optionCount={options.length}
+            criterionCount={criteria.length}
+            preview={previewDialogs}
+          />
         </div>
       )}
     </CardContent>

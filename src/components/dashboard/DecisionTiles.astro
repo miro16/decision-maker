@@ -1,0 +1,55 @@
+---
+import { cn } from "@/lib/utils";
+
+interface DecisionRow {
+  id: string;
+  title: string;
+}
+
+interface Props {
+  decisions: DecisionRow[];
+  decisionId: string | null;
+  /** True while the account is under the decision cap, so the New decision tile is offered. */
+  showForm: boolean;
+}
+
+const { decisions, decisionId, showForm } = Astro.props;
+
+const tile =
+  "flex aspect-square w-full flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card p-3 text-center text-sm font-semibold text-foreground outline-none transition-all hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+---
+
+<section class="space-y-3">
+  {decisions.length > 0 && <h2 class="text-lg font-semibold text-foreground">Your decisions</h2>}
+  {decisions.length === 0 && <p class="text-sm text-muted-foreground">No decisions yet. Add your first one.</p>}
+  <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    {decisions.map((decision) => (
+      <li>
+        <a
+          href={`/dashboard?decision=${encodeURIComponent(decision.id)}`}
+          aria-current={decision.id === decisionId ? "page" : undefined}
+          class:list={cn(
+            tile,
+            decision.id === decisionId && "border-ring bg-accent text-accent-foreground shadow-glow",
+          )}
+        >
+          <span class="line-clamp-4 break-words">{decision.title}</span>
+        </a>
+      </li>
+    ))}
+    {showForm && (
+      <li>
+        <button
+          type="button"
+          data-dialog-open="dialog-new-decision"
+          class:list={cn(tile, "cursor-pointer border-dashed text-muted-foreground")}
+        >
+          <span class="text-2xl leading-none" aria-hidden="true">
+            +
+          </span>
+          <span>New decision</span>
+        </button>
+      </li>
+    )}
+  </ul>
+</section>

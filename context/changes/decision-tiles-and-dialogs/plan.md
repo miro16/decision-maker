@@ -264,16 +264,16 @@ No data or database change. Rollback is reverting the change.
 
 #### Automated
 
-- [ ] 1.1 Linting passes: `npm run lint`
-- [ ] 1.2 Type check passes with 0 errors: `npx astro check`
-- [ ] 1.3 Build passes: `npm run build`
-- [ ] 1.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs`
-- [ ] 1.5 Smoke passes: `npm run smoke`
+- [x] 1.1 Linting passes: `npm run lint` — PENDINGSHA
+- [x] 1.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
+- [x] 1.3 Build passes: `npm run build` — PENDINGSHA
+- [x] 1.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
+- [x] 1.5 Smoke passes: `npm run smoke` — PENDINGSHA
 
 #### Manual
 
-- [ ] 1.6 Decisions show as square tiles; the current one is highlighted; clicking another tile loads it; `New decision` opens a dialog that creates a decision.
-- [ ] 1.7 `Edit decision` opens a dialog with rename and `Delete decision`; the confirmation opens as a dialog on `?confirm=delete`, `Cancel` closes it, Esc and the backdrop close the other dialogs.
+- [x] 1.6 Decisions show as square tiles; the current one is highlighted; clicking another tile loads it; `New decision` opens a dialog that creates a decision. — PENDINGSHA
+- [x] 1.7 `Edit decision` opens a dialog with rename and `Delete decision`; the confirmation opens as a dialog on `?confirm=delete`, `Cancel` closes it, Esc and the backdrop close the other dialogs. — PENDINGSHA
 
 ### Phase 2: Options and criteria dialogs
 
