@@ -216,15 +216,15 @@ No data or database change. Rollback is reverting the change; the Scores and Ran
 
 #### Automated
 
-- [x] 2.1 Linting passes: `npm run lint` — PENDINGSHA
-- [x] 2.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
-- [x] 2.3 Build passes: `npm run build` — PENDINGSHA
-- [x] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
-- [x] 2.5 Smoke passes: `npm run smoke` — PENDINGSHA
+- [x] 2.1 Linting passes: `npm run lint` — 4584e06
+- [x] 2.2 Type check passes with 0 errors: `npx astro check` — 4584e06
+- [x] 2.3 Build passes: `npm run build` — 4584e06
+- [x] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — 4584e06
+- [x] 2.5 Smoke passes: `npm run smoke` — 4584e06
 
 #### Manual
 
-- [x] 2.6 `/dev/dashboard-states` shows the table states listed above, including the 20-option case, with `loading` and `logged out` marked N/A. — PENDINGSHA
-- [x] 2.7 At 390 px the table scrolls inside its container, the option column stays visible, and the page has no horizontal overflow. — PENDINGSHA
-- [x] 2.8 Tab key focus shows the cyan ring on score fields and the `Save scores` button. — PENDINGSHA
-- [x] 2.9 `AGENTS.md` names `DecisionTable.astro`, the `<astro-slot>` reason and the `form` attribute. — PENDINGSHA
+- [x] 2.6 `/dev/dashboard-states` shows the table states listed above, including the 20-option case, with `loading` and `logged out` marked N/A. — 4584e06
+- [x] 2.7 At 390 px the table scrolls inside its container, the option column stays visible, and the page has no horizontal overflow. — 4584e06
+- [x] 2.8 Tab key focus shows the cyan ring on score fields and the `Save scores` button. — 4584e06
+- [x] 2.9 `AGENTS.md` names `DecisionTable.astro`, the `<astro-slot>` reason and the `form` attribute. — 4584e06

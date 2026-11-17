@@ -1,7 +1,7 @@
 ---
 change_id: decision-table-view
 title: Decision shown as a table of options by criteria with a score column
-status: implementing
+status: implemented
 created: 2026-11-17
 updated: 2026-11-17
 archived_at: null
