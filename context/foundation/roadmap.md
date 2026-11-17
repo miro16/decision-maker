@@ -48,6 +48,7 @@ Przy wyborze z kilkoma opcjami i kryteriami o różnej wadze nie widać spójneg
 | S-05  | tie-breaker-wheel             | rozstrzygnąć remis na pierwszym miejscu kołem fortuny     | S-03          | US-03, FR-012                    | proposed |
 | S-06  | multiple-decisions            | mieć kilka własnych decyzji, nazwać je i usunąć           | S-03          | FR-009, FR-003                   | in-progress |
 | S-07  | futuristic-dashboard-ui       | widzieć dashboard w futurystycznym, ciemnym motywie neonowym | S-06       | (UI, bez nowego FR)              | in-progress |
+| S-08  | decision-table-view           | widzieć decyzję jako tabelę opcji i kryteriów z oceną      | S-03, S-07    | FR-006, FR-007                   | in-progress |
 
 ## Baseline
 
@@ -161,6 +162,19 @@ Brak osobnych fundamentów. Konto i hosting są w Baseline. Izolacja kont oraz z
 - **Risk:** zmiana wartości tokenów w `global.css` dotyka każdej strony; kontrast sprawdzić w gate’cie (znany problem: `text-destructive` na `bg-destructive/10`). Tryb `/10x-ui`: audyt, plan, bramka screenshotowa, reguła w AGENTS.md.
 - **Status:** in-progress
 
+### S-08: Decyzja jako tabela
+
+- **Outcome:** użytkownik widzi decyzję jako tabelę: wiersze to opcje, kolumny to kryteria z wagami, ostatnia kolumna to ocena opcji (suma ważona, miejsce, znaczniki); oceny wpisuje w komórkach
+- **Change ID:** decision-table-view
+- **PRD refs:** FR-006, FR-007 (prezentacja ocen i rankingu; bez zmiany reguł liczenia)
+- **Prerequisites:** S-03, S-07
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:**
+  - Jak tabela zachowuje się przy 20 opcjach i 20 kryteriach (przyjęte: przewijanie poziome w kontenerze). — Owner: user. Block: no.
+- **Risk:** dotyka głównego widoku i jego stanów (`DecisionDashboard.astro`, `/dev/dashboard-states`); smoke asserts na tekstach sekcji Scores/Ranking trzeba przepisać świadomie; dostępność tabeli (nagłówki `scope`, etykiety pól w komórkach); brak zmian w API i bazie. Tryb `/10x-ui`: kontrakt tokenów, macierz stanów, bramka screenshotowa.
+- **Status:** in-progress
+
 ## Backlog Handoff
 
 | Roadmap ID | Change ID                     | Suggested issue title                                      | Ready for `/10x-plan` | Notes                                      |
@@ -172,6 +186,7 @@ Brak osobnych fundamentów. Konto i hosting są w Baseline. Izolacja kont oraz z
 | S-05       | tie-breaker-wheel             | User can break a first-place tie with a wheel of fortune   | no                    | Needs S-03 done; potem `/10x-plan tie-breaker-wheel` |
 | S-06       | multiple-decisions            | User can create, rename and delete several decisions       | yes                   | Run `/10x-plan multiple-decisions`; robimy przed S-05 i S-04 (decyzja użytkownika 2026-11-16) |
 | S-07       | futuristic-dashboard-ui       | User sees the dashboard in a futuristic neon-dark theme    | no                    | Needs S-06 done; potem `/10x-ui futuristic-dashboard-ui` (research z briefem audytu) |
+| S-08       | decision-table-view           | User sees the decision as a table of options by criteria   | yes                   | S-03 i S-07 gotowe; `/10x-research decision-table-view`, potem `/10x-plan` (prośba użytkownika 2026-11-17) |
 
 ## Open Roadmap Questions
 

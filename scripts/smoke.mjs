@@ -43,17 +43,34 @@ async function request(path, { method = "GET", form, cookieJar = ownerJar } = {}
   return { status: response.status, location: response.headers.get("location") ?? "", body };
 }
 
+const TABLE_HEADING = ">Decision table<";
+const MANAGE_HEADING = ">Manage options and criteria<";
+
+// Option and criterion ids live in the manage forms below the table, so the search starts at that heading.
+// The table above lists the same names but has no `name="id"` field.
 function hiddenIdAfter(body, marker) {
-  const from = body.indexOf(marker);
+  const manageFrom = body.indexOf(MANAGE_HEADING);
+  if (manageFrom === -1) return "";
+  const scoped = body.slice(manageFrom);
+  const from = scoped.indexOf(marker);
   if (from === -1) return "";
-  const match = body.slice(from).match(/name="id"[^>]*value="([^"]+)"/);
+  const match = scoped.slice(from).match(/name="id"[^>]*value="([^"]+)"/);
   return match?.[1] ?? "";
 }
 
-// Options and criteria are listed before the ranking, so ranking assertions look only at what follows its heading.
-function rankingOnly(page) {
-  const from = page.body.indexOf(">Ranking<");
-  return { ...page, body: from === -1 ? "" : page.body.slice(from) };
+// Table assertions look only at the table section: from its heading up to the manage heading.
+function tableOnly(page) {
+  const from = page.body.indexOf(TABLE_HEADING);
+  const to = page.body.indexOf(MANAGE_HEADING);
+  return { ...page, body: from === -1 ? "" : page.body.slice(from, to === -1 ? undefined : to) };
+}
+
+// One table row, found by the option name in its row header.
+function rowOf(page, name) {
+  const section = tableOnly(page).body;
+  const header = new RegExp(`scope="row"[^>]*>\\s*${name}\\s*<`);
+  const row = section.split("<tr").find((part) => header.test(part));
+  return { ...page, body: row ?? "" };
 }
 
 // The decision the existing steps work on, read from the Location of the create redirect.
@@ -302,14 +319,14 @@ const steps = [
   ],
   [
     "ranking shows no scores yet before any score is saved",
-    async () => rankingOnly(await request("/dashboard")),
+    async () => tableOnly(await request("/dashboard")),
     { status: 200, bodyIncludes: ["No scores yet"], bodyExcludes: ["Total "] },
   ],
   ["owner saves a complete grid for ScoreA", saveScores("a", "5", "5"), ok()],
   ["owner saves a complete grid for ScoreB", saveScores("b", "1", "1"), ok()],
   [
-    "ranking puts the higher total above the lower one",
-    async () => rankingOnly(await request("/dashboard")),
+    "table keeps the options in entry order and shows every total",
+    async () => tableOnly(await request("/dashboard")),
     {
       status: 200,
       bodyIncludes: ["Total 20", "Total 4", "ScoreC", "incomplete (2 missing)"],
@@ -320,10 +337,43 @@ const steps = [
       ],
     },
   ],
+  [
+    "ScoreA row shows rank 1 with the highest total",
+    async () => rowOf(await request("/dashboard"), "ScoreA"),
+    { status: 200, bodyIncludes: ["Total 20", ">1.<"], bodyExcludes: ["incomplete", ">tie<"] },
+  ],
+  [
+    "ScoreB row shows rank 2 with the lower total",
+    async () => rowOf(await request("/dashboard"), "ScoreB"),
+    { status: 200, bodyIncludes: ["Total 4", ">2.<"], bodyExcludes: ["incomplete", ">tie<"] },
+  ],
+  [
+    "ScoreC row shows rank 3 and is incomplete",
+    async () => rowOf(await request("/dashboard"), "ScoreC"),
+    { status: 200, bodyIncludes: ["incomplete (2 missing)", ">3.<"], bodyExcludes: [">tie<"] },
+  ],
+  [
+    "score fields attach to their option's row form",
+    async () => {
+      const ids = await scoreIds();
+      const page = tableOnly(await request("/dashboard"));
+      const attached = ["a", "b", "c"].every((key) => {
+        const row = page.body.split("<tr").find((part) => part.includes(`id="scores-${ids[key]}"`)) ?? "";
+        return (
+          row.includes(`form="scores-${ids[key]}"`) &&
+          row.includes(`name="score_${ids.price}"`) &&
+          row.includes(`name="score_${ids.battery}"`) &&
+          row.includes(`name="option_id" value="${ids[key]}"`)
+        );
+      });
+      return { ...page, status: attached ? 200 : 500 };
+    },
+    { status: 200 },
+  ],
   ["owner clears the Battery score of ScoreB", saveScores("b", "1", ""), ok()],
   [
     "partial grid shows ScoreB as incomplete with the sum of the scores that exist",
-    async () => rankingOnly(await request("/dashboard")),
+    async () => tableOnly(await request("/dashboard")),
     {
       status: 200,
       bodyIncludes: ["Total 20", "Total 3", "incomplete (1 missing)"],
@@ -331,11 +381,16 @@ const steps = [
       bodyOrder: [["ScoreA", "ScoreB"]],
     },
   ],
+  [
+    "ScoreB row shows rank 2 and the incomplete marker",
+    async () => rowOf(await request("/dashboard"), "ScoreB"),
+    { status: 200, bodyIncludes: ["Total 3", ">2.<", "incomplete (1 missing)"] },
+  ],
   ["owner saves equal totals for ScoreA", saveScores("a", "2", "1"), ok()],
   ["owner saves equal totals for ScoreB", saveScores("b", "2", "1"), ok()],
   [
     "equal totals share rank 1 with a tie marker and the next rank skips to 3",
-    async () => rankingOnly(await request("/dashboard")),
+    async () => tableOnly(await request("/dashboard")),
     { status: 200, bodyIncludes: ["Total 7", ">1.<", ">tie<", ">3.<"], bodyExcludes: [">2.<", "Total 20", "Total 3"] },
   ],
   ...[
@@ -346,7 +401,7 @@ const steps = [
     [`${label} is rejected`, saveScores("a", price, battery), errorAt()],
     [
       `${label} stores nothing`,
-      async () => rankingOnly(await request("/dashboard")),
+      async () => tableOnly(await request("/dashboard")),
       {
         status: 200,
         bodyIncludes: ["Total 7", ">tie<"],
@@ -394,7 +449,7 @@ const steps = [
   ],
   [
     "owner ranking is unchanged after the second account's attempt",
-    async () => rankingOnly(await request("/dashboard")),
+    async () => tableOnly(await request("/dashboard")),
     { status: 200, bodyIncludes: ["Total 7", ">tie<"], bodyExcludes: ["Total 5", "Total 20"] },
   ],
   [
@@ -554,7 +609,7 @@ const steps = [
   ],
   [
     "second decision shows its own ranking",
-    async () => rankingOnly(await request("/dashboard")),
+    async () => tableOnly(await request("/dashboard")),
     { status: 200, bodyIncludes: ["CityOption", "Total 10"] },
   ],
   [

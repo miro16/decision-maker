@@ -1,0 +1,132 @@
+---
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+interface OptionRow {
+  id: string;
+  name: string;
+}
+
+interface CriterionRow {
+  id: string;
+  name: string;
+  weight: number;
+}
+
+interface ScoreRow {
+  option_id: string;
+  criterion_id: string;
+  value: number;
+}
+
+interface RankingRow {
+  optionId: string;
+  total: number;
+  missing: number;
+  rank: number;
+}
+
+interface Props {
+  decisionId: string | null;
+  options: OptionRow[];
+  criteria: CriterionRow[];
+  scores: ScoreRow[];
+  ranking: RankingRow[] | null;
+}
+
+const { decisionId, options, criteria, scores, ranking } = Astro.props;
+
+const scoreValues = new Map(scores.map((score) => [`${score.option_id}:${score.criterion_id}`, score.value]));
+const rankingByOption = new Map((ranking ?? []).map((row) => [row.optionId, row]));
+const rankCounts = new Map<number, number>();
+for (const row of ranking ?? []) {
+  rankCounts.set(row.rank, (rankCounts.get(row.rank) ?? 0) + 1);
+}
+---
+
+<div class="space-y-3">
+  <p class="text-sm text-muted-foreground">
+    Score each option from 1 to 5 for every criterion. Leave a field blank for no score, then save the row.
+  </p>
+  <div class="overflow-x-auto rounded-lg border-x border-t border-border">
+    <table class="w-full border-separate border-spacing-0 text-sm">
+      <thead>
+        <tr>
+          <th
+            scope="col"
+            class="sticky left-0 border-r border-b border-border bg-card px-3 py-2 text-left font-medium text-muted-foreground"
+          >
+            Option
+          </th>
+          {criteria.map((criterion) => (
+            <th
+              scope="col"
+              class="border-b border-border px-3 py-2 text-left font-medium whitespace-nowrap text-muted-foreground"
+            >
+              {criterion.name} ({criterion.weight})
+            </th>
+          ))}
+          <th
+            scope="col"
+            class="border-b border-border px-3 py-2 text-left font-medium whitespace-nowrap text-muted-foreground"
+          >
+            Score
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {options.map((option) => {
+          const formId = `scores-${option.id}`;
+          const row = rankingByOption.get(option.id);
+          return (
+            <tr>
+              <th
+                scope="row"
+                class="sticky left-0 max-w-48 min-w-24 border-r border-b border-border bg-card px-3 py-2 text-left font-medium break-words text-foreground"
+              >
+                {option.name}
+              </th>
+              {criteria.map((criterion) => (
+                <td class="border-b border-border px-3 py-2">
+                  <Input
+                    type="number"
+                    form={formId}
+                    name={`score_${criterion.id}`}
+                    min={1}
+                    max={5}
+                    value={scoreValues.get(`${option.id}:${criterion.id}`) ?? ""}
+                    aria-label={`${option.name}, ${criterion.name}`}
+                    className="w-16 text-center text-foreground"
+                  />
+                </td>
+              ))}
+              <td class="min-w-40 border-b border-border px-3 py-2">
+                <div class="flex flex-wrap items-center gap-2">
+                  {row ? (
+                    <>
+                      <span class="font-semibold text-foreground">{row.rank}.</span>
+                      <span class="text-muted-foreground">Total {row.total}</span>
+                      {row.missing > 0 && <Badge variant="secondary">incomplete ({row.missing} missing)</Badge>}
+                      {(rankCounts.get(row.rank) ?? 0) > 1 && <Badge variant="secondary">tie</Badge>}
+                    </>
+                  ) : (
+                    <span class="text-muted-foreground">&mdash;</span>
+                  )}
+                  <form id={formId} method="POST" action="/api/scores">
+                    <input type="hidden" name="decision_id" value={decisionId} />
+                    <input type="hidden" name="option_id" value={option.id} />
+                    <Button type="submit" variant="outline" size="sm">
+                      Save scores
+                    </Button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+  {ranking === null && <p class="text-sm text-muted-foreground">No scores yet.</p>}
+</div>
