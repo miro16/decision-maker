@@ -6,6 +6,8 @@ const files = [
   "src/components/dashboard/DecisionDashboard.astro",
   "src/components/dashboard/DecisionTable.astro",
   "src/pages/dev/dashboard-states.astro",
+  "src/components/tie-breaker/TieBreakerWheel.tsx",
+  "src/components/hooks/useWheelSpin.ts",
 ];
 
 const literal =

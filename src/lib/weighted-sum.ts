@@ -89,3 +89,19 @@ export function rankOptions(
     return { ...entry, rank };
   });
 }
+
+/**
+ * Ids of the options a tie-breaker wheel may choose between.
+ *
+ * The wheel is offered only for a first-place tie: at least two options hold rank 1 and every one of them is fully scored.
+ * An incomplete option in the first-place group (its total could still change) means no wheel, so an empty list.
+ * Ties below first place and a `null` ranking also give an empty list.
+ */
+export function tieBreakCandidates(ranked: readonly RankedOption[] | null): string[] {
+  if (!ranked) return [];
+
+  const firstPlace = ranked.filter((entry) => entry.rank === 1);
+  if (firstPlace.length < 2 || firstPlace.some((entry) => !entry.complete)) return [];
+
+  return firstPlace.map((entry) => entry.optionId);
+}

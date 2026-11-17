@@ -3,7 +3,7 @@ import { z } from "zod";
 import DecisionDashboard from "@/components/dashboard/DecisionDashboard.astro";
 import Layout from "@/layouts/Layout.astro";
 import { createClient } from "@/lib/supabase";
-import { rankOptions, type RankedOption } from "@/lib/weighted-sum";
+import { rankOptions, tieBreakCandidates, type RankedOption } from "@/lib/weighted-sum";
 
 const MAX_DECISIONS = 20;
 
@@ -23,6 +23,8 @@ let options: { id: string; name: string }[] = [];
 let criteria: { id: string; name: string; weight: number }[] = [];
 let scores: { option_id: string; criterion_id: string; value: number }[] = [];
 let ranking: (RankedOption & { name: string })[] | null = null;
+let tieCandidates: { id: string; name: string }[] = [];
+let tieTotal: number | null = null;
 
 if (supabase && user) {
   const { data: decisionRows, error: loadError } = await supabase
@@ -112,6 +114,11 @@ if (supabase && user) {
           if (ranked) {
             const names = new Map(options.map((option) => [option.id, option.name]));
             ranking = ranked.map((entry) => ({ ...entry, name: names.get(entry.optionId) ?? "" }));
+
+            // Candidates keep the table order of the options; the shared total is that of the first-place group.
+            const tiedIds = new Set(tieBreakCandidates(ranked));
+            tieCandidates = options.filter((option) => tiedIds.has(option.id));
+            tieTotal = tieCandidates.length > 0 ? ranked[0].total : null;
           }
         }
       }
@@ -134,5 +141,7 @@ if (supabase && user) {
     criteria={criteria}
     scores={scores}
     ranking={ranking}
+    tieCandidates={tieCandidates}
+    tieTotal={tieTotal}
   />
 </Layout>
