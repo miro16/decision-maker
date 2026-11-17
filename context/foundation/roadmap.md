@@ -3,7 +3,7 @@ project: Decision Maker
 version: 1
 status: draft
 created: 2026-10-11
-updated: 2026-11-16
+updated: 2026-11-17
 prd_version: 1
 main_goal: speed
 top_blocker: capacity
@@ -45,7 +45,7 @@ Przy wyborze z kilkoma opcjami i kryteriami o różnej wadze nie widać spójneg
 | S-02  | options-and-weighted-criteria | dodać opcje i kryteria z wagami do tej decyzji            | S-01          | FR-004, FR-005, FR-008           | in-progress |
 | S-03  | weighted-ranking              | ocenić opcje i zobaczyć ranking z wyniku ważonego         | S-02          | US-01, FR-006, FR-007, FR-008    | in-progress |
 | S-04  | ai-criteria-suggestions       | poprosić model o sugestie kryteriów i dodać wybrane       | S-02          | US-02, FR-011                    | planning |
-| S-05  | tie-breaker-wheel             | rozstrzygnąć remis na pierwszym miejscu kołem fortuny     | S-03          | US-03, FR-012                    | in-progress |
+| S-05  | tie-breaker-wheel             | rozstrzygnąć remis na pierwszym miejscu kołem fortuny     | S-03          | US-03, FR-012                    | done |
 | S-06  | multiple-decisions            | mieć kilka własnych decyzji, nazwać je i usunąć           | S-03          | FR-009, FR-003                   | in-progress |
 | S-07  | futuristic-dashboard-ui       | widzieć dashboard w futurystycznym, ciemnym motywie neonowym | S-06       | (UI, bez nowego FR)              | in-progress |
 | S-08  | decision-table-view           | widzieć decyzję jako tabelę opcji i kryteriów z oceną      | S-03, S-07    | FR-006, FR-007                   | in-progress |
@@ -134,7 +134,7 @@ Brak osobnych fundamentów. Konto i hosting są w Baseline. Izolacja kont oraz z
 - **Unknowns:**
   - ~~Czy koło ma działać też dla remisu na niższych miejscach i czy wynik losowania ma być zapamiętany?~~ Rozstrzygnięte 2026-11-17: tylko pierwsze miejsce i tylko gdy cała grupa pierwszego miejsca jest w pełni oceniona; bez zapisu wyniku; ponowne losowanie dozwolone.
 - **Risk:** losowanie bez oznaczenia mogłoby wyglądać jak wynik rankingu; koło musi być wyraźnie rozstrzygnięciem remisu i nie zmieniać wyników. Kolejność: po `S-03`, przed `S-04`.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-06: Wiele decyzji na konto
 
@@ -214,3 +214,5 @@ Brak osobnych fundamentów. Konto i hosting są w Baseline. Izolacja kont oraz z
 ## Milestone History
 
 ## Done
+
+- **S-05: użytkownik może rozstrzygnąć remis na pierwszym miejscu rankingu kołem fortuny, które losuje jedną z remisujących opcji** — Archived 2026-11-17 → `context/archive/2026-11-16-tie-breaker-wheel/`. Lesson: —.
