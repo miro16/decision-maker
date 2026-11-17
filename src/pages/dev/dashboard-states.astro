@@ -32,6 +32,33 @@ const scored = {
   options: [option, secondOption],
   criteria: [criterion, secondCriterion],
 };
+// Largest table the caps allow: 20 options, many criteria, long names.
+const bigOptions = Array.from({ length: 20 }, (_, index) => ({
+  id: `big-option-${index + 1}`,
+  name:
+    index === 2 ? "An option with a very long name that has to wrap inside the first column" : `Option ${index + 1}`,
+}));
+const bigCriteria = Array.from({ length: 8 }, (_, index) => ({
+  id: `big-criterion-${index + 1}`,
+  name: index === 1 ? "A criterion with a long name" : `Criterion ${index + 1}`,
+  weight: (index % 5) + 1,
+}));
+const bigScores = bigOptions.flatMap((bigOption, optionIndex) =>
+  bigCriteria
+    .filter((_, criterionIndex) => (optionIndex + criterionIndex) % 4 !== 0)
+    .map((bigCriterion, criterionIndex) => ({
+      option_id: bigOption.id,
+      criterion_id: bigCriterion.id,
+      value: ((optionIndex + criterionIndex) % 5) + 1,
+    })),
+);
+const bigRanking = bigOptions.map((bigOption, index) => ({
+  optionId: bigOption.id,
+  name: bigOption.name,
+  total: 60 - index * 2,
+  missing: index % 3 === 0 ? 2 : 0,
+  rank: index + 1,
+}));
 ---
 
 <Layout title="Dashboard states">
@@ -173,6 +200,25 @@ const scored = {
           { optionId: "option-1", name: "MacBook", total: 14, missing: 0, rank: 1 },
           { optionId: "option-2", name: "ThinkPad", total: 6, missing: 1, rank: 2 },
         ]}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Options without criteria</h2>
+      <p class="text-sm text-muted-foreground">The table needs at least one option and one criterion.</p>
+      <DecisionDashboard {...filled} criteria={[]} />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Large table</h2>
+      <p class="text-sm text-muted-foreground">
+        20 options and 8 criteria with long names. The table scrolls inside its container and the option column stays
+        visible.
+      </p>
+      <DecisionDashboard
+        {...filled}
+        options={bigOptions}
+        criteria={bigCriteria}
+        scores={bigScores}
+        ranking={bigRanking}
       />
     </section>
     <section class="space-y-3">

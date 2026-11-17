@@ -202,29 +202,29 @@ No data or database change. Rollback is reverting the change; the Scores and Ran
 
 #### Automated
 
-- [x] 1.1 Linting passes: `npm run lint` — PENDINGSHA
-- [x] 1.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
-- [x] 1.3 Build passes: `npm run build` — PENDINGSHA
-- [x] 1.4 Smoke passes: `npm run smoke` — PENDINGSHA
+- [x] 1.1 Linting passes: `npm run lint` — cff8945
+- [x] 1.2 Type check passes with 0 errors: `npx astro check` — cff8945
+- [x] 1.3 Build passes: `npm run build` — cff8945
+- [x] 1.4 Smoke passes: `npm run smoke` — cff8945
 
 #### Manual
 
-- [x] 1.5 `/dashboard` shows the table: option names in the first column, one column per criterion with its weight, the score summary in the last column, and saving a row updates the total and rank. — PENDINGSHA
-- [x] 1.6 Add, rename and delete of options and criteria still work from the Manage section. — PENDINGSHA
+- [x] 1.5 `/dashboard` shows the table: option names in the first column, one column per criterion with its weight, the score summary in the last column, and saving a row updates the total and rank. — cff8945
+- [x] 1.6 Add, rename and delete of options and criteria still work from the Manage section. — cff8945
 
 ### Phase 2: States, responsiveness, gate and rule
 
 #### Automated
 
-- [ ] 2.1 Linting passes: `npm run lint`
-- [ ] 2.2 Type check passes with 0 errors: `npx astro check`
-- [ ] 2.3 Build passes: `npm run build`
-- [ ] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs`
-- [ ] 2.5 Smoke passes: `npm run smoke`
+- [x] 2.1 Linting passes: `npm run lint` — PENDINGSHA
+- [x] 2.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
+- [x] 2.3 Build passes: `npm run build` — PENDINGSHA
+- [x] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
+- [x] 2.5 Smoke passes: `npm run smoke` — PENDINGSHA
 
 #### Manual
 
-- [ ] 2.6 `/dev/dashboard-states` shows the table states listed above, including the 20-option case, with `loading` and `logged out` marked N/A.
-- [ ] 2.7 At 390 px the table scrolls inside its container, the option column stays visible, and the page has no horizontal overflow.
-- [ ] 2.8 Tab key focus shows the cyan ring on score fields and the `Save scores` button.
-- [ ] 2.9 `AGENTS.md` names `DecisionTable.astro`, the `<astro-slot>` reason and the `form` attribute.
+- [x] 2.6 `/dev/dashboard-states` shows the table states listed above, including the 20-option case, with `loading` and `logged out` marked N/A. — PENDINGSHA
+- [x] 2.7 At 390 px the table scrolls inside its container, the option column stays visible, and the page has no horizontal overflow. — PENDINGSHA
+- [x] 2.8 Tab key focus shows the cyan ring on score fields and the `Save scores` button. — PENDINGSHA
+- [x] 2.9 `AGENTS.md` names `DecisionTable.astro`, the `<astro-slot>` reason and the `form` attribute. — PENDINGSHA

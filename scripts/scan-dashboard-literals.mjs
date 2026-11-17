@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 const files = [
   "src/pages/dashboard.astro",
   "src/components/dashboard/DecisionDashboard.astro",
+  "src/components/dashboard/DecisionTable.astro",
   "src/pages/dev/dashboard-states.astro",
 ];
 

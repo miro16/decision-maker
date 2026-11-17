@@ -49,19 +49,28 @@ for (const row of ranking ?? []) {
   <p class="text-sm text-muted-foreground">
     Score each option from 1 to 5 for every criterion. Leave a field blank for no score, then save the row.
   </p>
-  <div class="overflow-x-auto rounded-lg border border-border">
-    <table class="w-full border-collapse text-sm">
+  <div class="overflow-x-auto rounded-lg border-x border-t border-border">
+    <table class="w-full border-separate border-spacing-0 text-sm">
       <thead>
-        <tr class="border-b border-border">
-          <th scope="col" class="sticky left-0 bg-card px-3 py-2 text-left font-medium text-muted-foreground">
+        <tr>
+          <th
+            scope="col"
+            class="sticky left-0 border-r border-b border-border bg-card px-3 py-2 text-left font-medium text-muted-foreground"
+          >
             Option
           </th>
           {criteria.map((criterion) => (
-            <th scope="col" class="px-3 py-2 text-left font-medium text-muted-foreground">
+            <th
+              scope="col"
+              class="border-b border-border px-3 py-2 text-left font-medium whitespace-nowrap text-muted-foreground"
+            >
               {criterion.name} ({criterion.weight})
             </th>
           ))}
-          <th scope="col" class="px-3 py-2 text-left font-medium text-muted-foreground">
+          <th
+            scope="col"
+            class="border-b border-border px-3 py-2 text-left font-medium whitespace-nowrap text-muted-foreground"
+          >
             Score
           </th>
         </tr>
@@ -71,12 +80,15 @@ for (const row of ranking ?? []) {
           const formId = `scores-${option.id}`;
           const row = rankingByOption.get(option.id);
           return (
-            <tr class="border-b border-border last:border-b-0">
-              <th scope="row" class="sticky left-0 bg-card px-3 py-2 text-left font-medium break-words text-foreground">
+            <tr>
+              <th
+                scope="row"
+                class="sticky left-0 max-w-48 min-w-24 border-r border-b border-border bg-card px-3 py-2 text-left font-medium break-words text-foreground"
+              >
                 {option.name}
               </th>
               {criteria.map((criterion) => (
-                <td class="px-3 py-2">
+                <td class="border-b border-border px-3 py-2">
                   <Input
                     type="number"
                     form={formId}
@@ -89,7 +101,7 @@ for (const row of ranking ?? []) {
                   />
                 </td>
               ))}
-              <td class="px-3 py-2">
+              <td class="min-w-40 border-b border-border px-3 py-2">
                 <div class="flex flex-wrap items-center gap-2">
                   {row ? (
                     <>
