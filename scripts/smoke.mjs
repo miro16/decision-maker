@@ -58,9 +58,18 @@ function hiddenIdAfter(body, marker) {
   return match?.[1] ?? "";
 }
 
-// Table assertions look only at the table section: from its heading up to the manage heading.
+const TIE_HEADING = ">Tie-breaker<";
+
+// Table assertions look only at the table section: from its heading up to the tie-breaker or manage heading.
 function tableOnly(page) {
   const from = page.body.indexOf(TABLE_HEADING);
+  const ends = [page.body.indexOf(TIE_HEADING), page.body.indexOf(MANAGE_HEADING)].filter((index) => index > from);
+  return { ...page, body: from === -1 ? "" : page.body.slice(from, ends.length ? Math.min(...ends) : undefined) };
+}
+
+// The tie-breaker section: from its heading up to the manage heading; empty when the section is not rendered.
+function tieBreakerOnly(page) {
+  const from = page.body.indexOf(TIE_HEADING);
   const to = page.body.indexOf(MANAGE_HEADING);
   return { ...page, body: from === -1 ? "" : page.body.slice(from, to === -1 ? undefined : to) };
 }
@@ -338,6 +347,11 @@ const steps = [
     },
   ],
   [
+    "no tie at first place shows no tie-breaker",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["Total 20"], bodyExcludes: [">Tie-breaker<"] },
+  ],
+  [
     "ScoreA row shows rank 1 with the highest total",
     async () => rowOf(await request("/dashboard"), "ScoreA"),
     { status: 200, bodyIncludes: ["Total 20", ">1.<"], bodyExcludes: ["incomplete", ">tie<"] },
@@ -386,12 +400,35 @@ const steps = [
     async () => rowOf(await request("/dashboard"), "ScoreB"),
     { status: 200, bodyIncludes: ["Total 3", ">2.<", "incomplete (1 missing)"] },
   ],
+  [
+    "partial grid with a clear leader shows no tie-breaker",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: ["Total 20"], bodyExcludes: [">Tie-breaker<"] },
+  ],
+  ["owner saves Total 6 for ScoreA", saveScores("a", "1", "3"), ok()],
+  ["owner saves Total 6 for ScoreB", saveScores("b", "1", "3"), ok()],
+  ["owner scores only Price for ScoreC, which also totals 6 but is incomplete", saveScores("c", "2", ""), ok()],
+  [
+    "first place shared with an incomplete option shows the tie marker but no tie-breaker",
+    () => request("/dashboard"),
+    { status: 200, bodyIncludes: [">tie<", "incomplete (1 missing)", "Total 6"], bodyExcludes: [">Tie-breaker<"] },
+  ],
+  ["owner clears the scores of ScoreC again", saveScores("c", "", ""), ok()],
   ["owner saves equal totals for ScoreA", saveScores("a", "2", "1"), ok()],
   ["owner saves equal totals for ScoreB", saveScores("b", "2", "1"), ok()],
   [
     "equal totals share rank 1 with a tie marker and the next rank skips to 3",
     async () => tableOnly(await request("/dashboard")),
     { status: 200, bodyIncludes: ["Total 7", ">1.<", ">tie<", ">3.<"], bodyExcludes: [">2.<", "Total 20", "Total 3"] },
+  ],
+  [
+    "two fully scored options sharing first place get a tie-breaker with only those options",
+    async () => tieBreakerOnly(await request("/dashboard")),
+    {
+      status: 200,
+      bodyIncludes: [">Tie-breaker<", "ScoreA", "ScoreB", "2 options share first place with Total 7"],
+      bodyExcludes: ["ScoreC", "Total 20"],
+    },
   ],
   ...[
     ["score 0", "0", "3"],
@@ -445,7 +482,7 @@ const steps = [
   [
     "second account does not see the owner's scores or ranking",
     () => request("/dashboard", { cookieJar: otherJar }),
-    { status: 200, bodyExcludes: ["ScoreA", "ScoreB", "Ranking", "Total ", "incomplete", ">tie<"] },
+    { status: 200, bodyExcludes: ["ScoreA", "ScoreB", "Ranking", "Total ", "incomplete", ">tie<", ">Tie-breaker<"] },
   ],
   [
     "owner ranking is unchanged after the second account's attempt",

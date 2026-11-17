@@ -1,7 +1,7 @@
 ---
 change_id: tie-breaker-wheel
 title: User can break a first-place tie with a wheel of fortune
-status: planned
+status: implementing
 created: 2026-11-16
 updated: 2026-11-17
 archived_at: null

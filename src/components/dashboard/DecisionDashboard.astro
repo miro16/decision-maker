@@ -49,6 +49,8 @@ interface Props {
   criteria: CriterionRow[];
   scores: ScoreRow[];
   ranking: RankingRow[] | null;
+  tieCandidates?: OptionRow[];
+  tieTotal?: number | null;
 }
 
 const {
@@ -64,6 +66,8 @@ const {
   criteria,
   scores,
   ranking,
+  tieCandidates = [],
+  tieTotal = null,
 } = Astro.props;
 
 const canScore = options.length > 0 && criteria.length > 0;
@@ -192,6 +196,20 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
                   </p>
                 )}
               </section>
+              {tieCandidates.length > 1 && (
+                <section class="space-y-3">
+                  <h2 class="text-lg font-semibold text-foreground">Tie-breaker</h2>
+                  <p class="text-sm text-muted-foreground">
+                    {count(tieCandidates.length, "option", "options")} share first place with Total {tieTotal}. Spinning
+                    does not change the ranking.
+                  </p>
+                  <ul class="list-disc space-y-1 pl-5 text-sm text-foreground">
+                    {tieCandidates.map((candidate) => (
+                      <li>{candidate.name}</li>
+                    ))}
+                  </ul>
+                </section>
+              )}
               <section class="space-y-8">
                 <h2 class="text-lg font-semibold text-foreground">Manage options and criteria</h2>
                 <section class="space-y-3">

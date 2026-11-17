@@ -260,15 +260,15 @@ No data or database change. Rollback is reverting the change; nothing is stored.
 
 #### Automated
 
-- [ ] 1.1 Linting passes: `npm run lint`
-- [ ] 1.2 Type check passes with 0 errors: `npx astro check`
-- [ ] 1.3 Build passes: `npm run build`
-- [ ] 1.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs`
-- [ ] 1.5 Smoke passes: `npm run smoke`
+- [x] 1.1 Linting passes: `npm run lint` — PENDINGSHA
+- [x] 1.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
+- [x] 1.3 Build passes: `npm run build` — PENDINGSHA
+- [x] 1.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
+- [x] 1.5 Smoke passes: `npm run smoke` — PENDINGSHA
 
 #### Manual
 
-- [ ] 1.6 With two options tied at first place and fully scored, `/dashboard` shows the Tie-breaker section listing exactly those options; with an incomplete option in the tie, or no tie, it does not.
+- [x] 1.6 With two options tied at first place and fully scored, `/dashboard` shows the Tie-breaker section listing exactly those options; with an incomplete option in the tie, or no tie, it does not. — PENDINGSHA
 
 ### Phase 2: The wheel
 
