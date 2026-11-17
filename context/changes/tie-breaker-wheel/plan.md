@@ -289,16 +289,16 @@ No data or database change. Rollback is reverting the change; nothing is stored.
 
 #### Automated
 
-- [x] 3.1 Linting passes: `npm run lint` — PENDINGSHA
-- [x] 3.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
-- [x] 3.3 Build passes: `npm run build` — PENDINGSHA
-- [x] 3.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
-- [x] 3.5 Smoke passes: `npm run smoke` — PENDINGSHA
+- [x] 3.1 Linting passes: `npm run lint` — ff77446
+- [x] 3.2 Type check passes with 0 errors: `npx astro check` — ff77446
+- [x] 3.3 Build passes: `npm run build` — ff77446
+- [x] 3.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — ff77446
+- [x] 3.5 Smoke passes: `npm run smoke` — ff77446
 
 #### Manual
 
-- [x] 3.6 `/dev/dashboard-states` shows the wheel with two, three and 20 candidates, a drawn result, and the two no-wheel cases, with `loading` and `logged out` marked N/A. — PENDINGSHA
-- [x] 3.7 The measured contrast for the wheel labels and pointer meets 4.5:1 and 3:1 and is recorded in `tokens.md`. — PENDINGSHA
-- [x] 3.8 At 390 px the wheel, button and result fit the card, with no horizontal page overflow. — PENDINGSHA
-- [x] 3.9 Tab key focus shows the cyan ring on the spin button, and the result is announced (the status block has `role="status"`). — PENDINGSHA
-- [x] 3.10 `AGENTS.md` names the wheel files, `tieBreakCandidates` and the client-only, not-stored rule. — PENDINGSHA
+- [x] 3.6 `/dev/dashboard-states` shows the wheel with two, three and 20 candidates, a drawn result, and the two no-wheel cases, with `loading` and `logged out` marked N/A. — ff77446
+- [x] 3.7 The measured contrast for the wheel labels and pointer meets 4.5:1 and 3:1 and is recorded in `tokens.md`. — ff77446
+- [x] 3.8 At 390 px the wheel, button and result fit the card, with no horizontal page overflow. — ff77446
+- [x] 3.9 Tab key focus shows the cyan ring on the spin button, and the result is announced (the status block has `role="status"`). — ff77446
+- [x] 3.10 `AGENTS.md` names the wheel files, `tieBreakCandidates` and the client-only, not-stored rule. — ff77446
