@@ -274,31 +274,31 @@ No data or database change. Rollback is reverting the change; nothing is stored.
 
 #### Automated
 
-- [x] 2.1 Linting passes: `npm run lint` — PENDINGSHA
-- [x] 2.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
-- [x] 2.3 Build passes: `npm run build` — PENDINGSHA
-- [x] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
-- [x] 2.5 Smoke passes: `npm run smoke` — PENDINGSHA
+- [x] 2.1 Linting passes: `npm run lint` — 5f93f53
+- [x] 2.2 Type check passes with 0 errors: `npx astro check` — 5f93f53
+- [x] 2.3 Build passes: `npm run build` — 5f93f53
+- [x] 2.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — 5f93f53
+- [x] 2.5 Smoke passes: `npm run smoke` — 5f93f53
 
 #### Manual
 
-- [x] 2.6 Pressing the button turns the wheel and stops with the pointer on the slice named in the result block; the block shows `Tie-break draw`, the name and the unchanged-ranking line; "Spin again" draws again. — PENDINGSHA
-- [x] 2.7 With reduced motion emulated, 300 draws on a two- or three-candidate wheel give every candidate roughly an equal share, and the table, totals and ranks never change. — PENDINGSHA
+- [x] 2.6 Pressing the button turns the wheel and stops with the pointer on the slice named in the result block; the block shows `Tie-break draw`, the name and the unchanged-ranking line; "Spin again" draws again. — 5f93f53
+- [x] 2.7 With reduced motion emulated, 300 draws on a two- or three-candidate wheel give every candidate roughly an equal share, and the table, totals and ranks never change. — 5f93f53
 
 ### Phase 3: States, gate and rule
 
 #### Automated
 
-- [ ] 3.1 Linting passes: `npm run lint`
-- [ ] 3.2 Type check passes with 0 errors: `npx astro check`
-- [ ] 3.3 Build passes: `npm run build`
-- [ ] 3.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs`
-- [ ] 3.5 Smoke passes: `npm run smoke`
+- [x] 3.1 Linting passes: `npm run lint` — PENDINGSHA
+- [x] 3.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
+- [x] 3.3 Build passes: `npm run build` — PENDINGSHA
+- [x] 3.4 No literals in the scanned view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
+- [x] 3.5 Smoke passes: `npm run smoke` — PENDINGSHA
 
 #### Manual
 
-- [ ] 3.6 `/dev/dashboard-states` shows the wheel with two, three and 20 candidates, a drawn result, and the two no-wheel cases, with `loading` and `logged out` marked N/A.
-- [ ] 3.7 The measured contrast for the wheel labels and pointer meets 4.5:1 and 3:1 and is recorded in `tokens.md`.
-- [ ] 3.8 At 390 px the wheel, button and result fit the card, with no horizontal page overflow.
-- [ ] 3.9 Tab key focus shows the cyan ring on the spin button, and the result is announced (the status block has `role="status"`).
-- [ ] 3.10 `AGENTS.md` names the wheel files, `tieBreakCandidates` and the client-only, not-stored rule.
+- [x] 3.6 `/dev/dashboard-states` shows the wheel with two, three and 20 candidates, a drawn result, and the two no-wheel cases, with `loading` and `logged out` marked N/A. — PENDINGSHA
+- [x] 3.7 The measured contrast for the wheel labels and pointer meets 4.5:1 and 3:1 and is recorded in `tokens.md`. — PENDINGSHA
+- [x] 3.8 At 390 px the wheel, button and result fit the card, with no horizontal page overflow. — PENDINGSHA
+- [x] 3.9 Tab key focus shows the cyan ring on the spin button, and the result is announced (the status block has `role="status"`). — PENDINGSHA
+- [x] 3.10 `AGENTS.md` names the wheel files, `tieBreakCandidates` and the client-only, not-stored rule. — PENDINGSHA

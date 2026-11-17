@@ -52,6 +52,8 @@ interface Props {
   ranking: RankingRow[] | null;
   tieCandidates?: OptionRow[];
   tieTotal?: number | null;
+  /** State sink only: shows a finished draw for this option without spinning. */
+  tieWinnerId?: string;
 }
 
 const {
@@ -69,6 +71,7 @@ const {
   ranking,
   tieCandidates = [],
   tieTotal = null,
+  tieWinnerId,
 } = Astro.props;
 
 const canScore = options.length > 0 && criteria.length > 0;
@@ -204,7 +207,7 @@ const count = (n: number, singular: string, plural: string) => `${n} ${n === 1 ?
                     {count(tieCandidates.length, "option", "options")} share first place with Total {tieTotal}. Spinning
                     does not change the ranking.
                   </p>
-                  <TieBreakerWheel candidates={tieCandidates} client:load />
+                  <TieBreakerWheel candidates={tieCandidates} previewWinnerId={tieWinnerId} client:load />
                 </section>
               )}
               <section class="space-y-8">

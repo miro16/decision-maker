@@ -38,8 +38,9 @@ There is no unit test framework yet. The only automated check is `scripts/smoke.
 - Use the `shadow-glow` utility (from `--shadow-glow` in `@theme inline`) for the glow. Do not write a box-shadow with a colour.
 - `badge` and `alert` exist in `src/components/ui`. Use `Badge` for markers and `Alert` (destructive) for error messages. Anchors styled as buttons use `buttonVariants` from `src/components/ui/button.tsx`, not hand-written classes.
 - The decision table (options as rows, criteria as columns, score in the last column) lives in `src/components/dashboard/DecisionTable.astro`. It uses plain `<table>` elements, because Astro wraps the children of non-hydrated React components in `<astro-slot>`, which breaks a table built from `.tsx` parts. A form cannot wrap a table row, so the cell inputs attach to the row form with the `form` attribute.
+- The tie-breaker wheel lives in `src/components/tie-breaker/TieBreakerWheel.tsx`, with its hook in `src/components/hooks/useWheelSpin.ts`. Whether it shows is decided on the server by `tieBreakCandidates` in `src/lib/weighted-sum.ts`: the whole first-place group, two or more options, all fully scored. The draw is client-only, uses `crypto.getRandomValues` (no `Math.random`), and is not stored, so it is gone on reload. The wheel never changes ranking data. Contrast is recorded in `context/changes/tie-breaker-wheel/tokens.md`.
 - The state sink for that view is `/dev/dashboard-states`.
-- `scripts/scan-dashboard-literals.mjs` fails when those view files contain a literal. The pre-commit hook runs it.
+- `scripts/scan-dashboard-literals.mjs` fails when those view files, and the two wheel files above, contain a literal. The pre-commit hook runs it.
 
 ## Coding Style
 

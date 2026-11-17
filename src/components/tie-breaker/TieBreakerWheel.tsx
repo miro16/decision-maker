@@ -19,7 +19,7 @@ interface Props {
 const CENTER_X = 100;
 const CENTER_Y = 110;
 const RADIUS = 92;
-const LABEL_RADIUS = 84;
+const LABEL_RADIUS = 78;
 
 // Four of the five chart roles; chart-5 is the error red and would read as a warning.
 const SLICE_FILLS = ["fill-chart-1", "fill-chart-2", "fill-chart-3", "fill-chart-4"];
@@ -43,11 +43,14 @@ function slicePath(index: number, count: number): string {
   return `M ${CENTER_X} ${CENTER_Y} L ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${RADIUS} ${RADIUS} 0 ${largeArc} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)} Z`;
 }
 
+// Above this many slices a name no longer fits, so each slice shows its number and the list is numbered.
+const MAX_NAMED_SLICES = 12;
+
 function labelSize(count: number): { fontSize: number; maxChars: number } {
   if (count <= 4) return { fontSize: 12, maxChars: 16 };
   if (count <= 8) return { fontSize: 10, maxChars: 12 };
-  if (count <= 12) return { fontSize: 8, maxChars: 9 };
-  return { fontSize: 6, maxChars: 7 };
+  if (count <= MAX_NAMED_SLICES) return { fontSize: 8, maxChars: 9 };
+  return { fontSize: 9, maxChars: 2 };
 }
 
 function shorten(name: string, maxChars: number): string {
@@ -64,6 +67,8 @@ export function TieBreakerWheel({ candidates, previewWinnerId }: Props) {
   const winner = winnerIndex === null ? null : candidates[winnerIndex];
   const { fontSize, maxChars } = labelSize(count);
   const step = 360 / count;
+  const numbered = count > MAX_NAMED_SLICES;
+  const ListTag = numbered ? "ol" : "ul";
 
   let buttonLabel = "Spin the wheel";
   if (spinning) buttonLabel = "Spinning\u2026";
@@ -106,7 +111,7 @@ export function TieBreakerWheel({ candidates, previewWinnerId }: Props) {
                   fontWeight={600}
                   className="fill-background"
                 >
-                  {shorten(candidate.name, maxChars)}
+                  {numbered ? index + 1 : shorten(candidate.name, maxChars)}
                 </text>
               </g>
             );
@@ -114,19 +119,25 @@ export function TieBreakerWheel({ candidates, previewWinnerId }: Props) {
           <circle cx={CENTER_X} cy={CENTER_Y} r={10} className="fill-card stroke-border" strokeWidth={1} />
         </g>
         <polygon
-          points={`${CENTER_X},${CENTER_Y - RADIUS + 10} ${CENTER_X - 9},2 ${CENTER_X + 9},2`}
+          points={`${CENTER_X},${CENTER_Y - RADIUS + 2} ${CENTER_X - 9},2 ${CENTER_X + 9},2`}
           className="fill-foreground stroke-background"
           strokeWidth={1}
         />
       </svg>
       <div className="flex w-full flex-col gap-3">
-        <ul className="text-foreground list-disc space-y-1 pl-5 text-sm">
+        <ListTag className={cn("text-foreground space-y-1 pl-5 text-sm", numbered ? "list-decimal" : "list-disc")}>
           {candidates.map((candidate) => (
             <li key={candidate.id}>{candidate.name}</li>
           ))}
-        </ul>
+        </ListTag>
         <div>
-          <Button type="button" onClick={spin} disabled={spinning}>
+          {/* aria-disabled, not disabled: a disabled button drops keyboard focus when a spin starts. */}
+          <Button
+            type="button"
+            onClick={spin}
+            aria-disabled={spinning}
+            className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
+          >
             {buttonLabel}
           </Button>
         </div>

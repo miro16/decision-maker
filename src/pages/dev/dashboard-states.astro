@@ -59,6 +59,29 @@ const bigRanking = bigOptions.map((bigOption, index) => ({
   missing: index % 3 === 0 ? 2 : 0,
   rank: index + 1,
 }));
+// Tie-breaker wheel inputs. The page derives these with tieBreakCandidates; the sink passes them directly.
+const thirdOption = { id: "option-3", name: "Dell XPS" };
+const threeOptions = [option, secondOption, thirdOption];
+const tieScores = (ids: string[]) =>
+  ids.flatMap((id) => [
+    { option_id: id, criterion_id: "criterion-1", value: 4 },
+    { option_id: id, criterion_id: "criterion-2", value: 2 },
+  ]);
+const wheelOptions = Array.from({ length: 20 }, (_, index) => ({
+  id: `wheel-option-${index + 1}`,
+  name: index % 7 === 2 ? `A long option name number ${index + 1} that does not fit` : `Option ${index + 1}`,
+}));
+const wheelScores = wheelOptions.flatMap((wheelOption) => [
+  { option_id: wheelOption.id, criterion_id: "criterion-1", value: 4 },
+  { option_id: wheelOption.id, criterion_id: "criterion-2", value: 2 },
+]);
+const wheelRanking = wheelOptions.map((wheelOption) => ({
+  optionId: wheelOption.id,
+  name: wheelOption.name,
+  total: 14,
+  missing: 0,
+  rank: 1,
+}));
 ---
 
 <Layout title="Dashboard states">
@@ -184,6 +207,87 @@ const bigRanking = bigOptions.map((bigOption, index) => ({
         ranking={[
           { optionId: "option-1", name: "MacBook", total: 14, missing: 0, rank: 1 },
           { optionId: "option-2", name: "ThinkPad", total: 14, missing: 0, rank: 1 },
+        ]}
+        tieCandidates={[option, secondOption]}
+        tieTotal={14}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Tie-breaker with three candidates</h2>
+      <DecisionDashboard
+        {...scored}
+        options={threeOptions}
+        scores={tieScores(["option-1", "option-2", "option-3"])}
+        ranking={[
+          { optionId: "option-1", name: "MacBook", total: 14, missing: 0, rank: 1 },
+          { optionId: "option-2", name: "ThinkPad", total: 14, missing: 0, rank: 1 },
+          { optionId: "option-3", name: "Dell XPS", total: 14, missing: 0, rank: 1 },
+        ]}
+        tieCandidates={threeOptions}
+        tieTotal={14}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Tie-breaker with 20 candidates</h2>
+      <p class="text-sm text-muted-foreground">
+        The most the caps allow, with long names. Labels shrink and are cut with an ellipsis; the full name is in the
+        list and in the slice title.
+      </p>
+      <DecisionDashboard
+        {...scored}
+        options={wheelOptions}
+        scores={wheelScores}
+        ranking={wheelRanking}
+        tieCandidates={wheelOptions}
+        tieTotal={14}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">Tie-breaker with a drawn result</h2>
+      <p class="text-sm text-muted-foreground">
+        A finished draw, shown without spinning. The ranking and totals stay as above, and the button reads Spin again.
+      </p>
+      <DecisionDashboard
+        {...scored}
+        scores={tieScores(["option-1", "option-2"])}
+        ranking={[
+          { optionId: "option-1", name: "MacBook", total: 14, missing: 0, rank: 1 },
+          { optionId: "option-2", name: "ThinkPad", total: 14, missing: 0, rank: 1 },
+        ]}
+        tieCandidates={[option, secondOption]}
+        tieTotal={14}
+        tieWinnerId="option-2"
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">No tie-breaker: tie includes an incomplete option</h2>
+      <p class="text-sm text-muted-foreground">
+        Two options share Total 6 at first place, but ThinkPad is missing a score, so there is no wheel.
+      </p>
+      <DecisionDashboard
+        {...scored}
+        scores={[
+          { option_id: "option-1", criterion_id: "criterion-1", value: 1 },
+          { option_id: "option-1", criterion_id: "criterion-2", value: 3 },
+          { option_id: "option-2", criterion_id: "criterion-1", value: 2 },
+        ]}
+        ranking={[
+          { optionId: "option-1", name: "MacBook", total: 6, missing: 0, rank: 1 },
+          { optionId: "option-2", name: "ThinkPad", total: 6, missing: 1, rank: 1 },
+        ]}
+      />
+    </section>
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-foreground">No tie-breaker: tie below first place</h2>
+      <p class="text-sm text-muted-foreground">Two options tie for second place, so there is nothing to break.</p>
+      <DecisionDashboard
+        {...scored}
+        options={threeOptions}
+        scores={tieScores(["option-1", "option-2", "option-3"])}
+        ranking={[
+          { optionId: "option-1", name: "MacBook", total: 20, missing: 0, rank: 1 },
+          { optionId: "option-2", name: "ThinkPad", total: 14, missing: 0, rank: 2 },
+          { optionId: "option-3", name: "Dell XPS", total: 14, missing: 0, rank: 2 },
         ]}
       />
     </section>
