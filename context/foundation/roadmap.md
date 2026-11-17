@@ -47,7 +47,7 @@ Przy wyborze z kilkoma opcjami i kryteriami o różnej wadze nie widać spójneg
 | S-04  | ai-criteria-suggestions       | poprosić model o sugestie kryteriów i dodać wybrane       | S-02          | US-02, FR-011                    | planning |
 | S-05  | tie-breaker-wheel             | rozstrzygnąć remis na pierwszym miejscu kołem fortuny     | S-03          | US-03, FR-012                    | proposed |
 | S-06  | multiple-decisions            | mieć kilka własnych decyzji, nazwać je i usunąć           | S-03          | FR-009, FR-003                   | in-progress |
-| S-07  | futuristic-dashboard-ui       | widzieć dashboard w futurystycznym, ciemnym motywie neonowym | S-06       | (UI, bez nowego FR)              | proposed |
+| S-07  | futuristic-dashboard-ui       | widzieć dashboard w futurystycznym, ciemnym motywie neonowym | S-06       | (UI, bez nowego FR)              | in-progress |
 
 ## Baseline
 
@@ -159,7 +159,7 @@ Brak osobnych fundamentów. Konto i hosting są w Baseline. Izolacja kont oraz z
 - **Unknowns:**
   - Czy dodać przełącznik motywu (przyjęte: nie, ciemny jako domyślny). — Owner: user. Block: no.
 - **Risk:** zmiana wartości tokenów w `global.css` dotyka każdej strony; kontrast sprawdzić w gate’cie (znany problem: `text-destructive` na `bg-destructive/10`). Tryb `/10x-ui`: audyt, plan, bramka screenshotowa, reguła w AGENTS.md.
-- **Status:** proposed
+- **Status:** in-progress
 
 ## Backlog Handoff
 
