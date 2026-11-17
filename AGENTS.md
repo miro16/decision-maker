@@ -34,6 +34,9 @@ There is no unit test framework yet. The only automated check is `scripts/smoke.
 - Tokens live in `src/styles/global.css`: role values in `:root` and `.dark`, published through `@theme inline`. Do not write raw colours into `@theme inline`.
 - Shared components live in `src/components/ui`. Check that directory before creating a component. Add a missing one with `npx shadcn add <name>`.
 - No literal colours or arbitrary px/rem values in the dashboard view. Use role tokens (`bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `text-destructive`) and the components above. The view files are `src/pages/dashboard.astro`, `src/components/dashboard/DecisionDashboard.astro`, and `src/pages/dev/dashboard-states.astro`.
+- Dark is the default theme: `class="dark"` on `<html>` in `src/layouts/Layout.astro`, with no toggle. The palette (cyan primary, violet secondary and accent) lives in the `.dark` block of `src/styles/global.css`, and the glow in the `--glow` role there. Measured contrast is in `context/changes/futuristic-dashboard-ui/tokens.md`.
+- Use the `shadow-glow` utility (from `--shadow-glow` in `@theme inline`) for the glow. Do not write a box-shadow with a colour.
+- `badge` and `alert` exist in `src/components/ui`. Use `Badge` for markers and `Alert` (destructive) for error messages. Anchors styled as buttons use `buttonVariants` from `src/components/ui/button.tsx`, not hand-written classes.
 - The state sink for that view is `/dev/dashboard-states`.
 - `scripts/scan-dashboard-literals.mjs` fails when those view files contain a literal. The pre-commit hook runs it.
 

@@ -21,8 +21,8 @@ Source: design choice of change `futuristic-dashboard-ui`, 2026-11-17 (dark neon
   --accent: oklch(0.3 0.1 295);
   --accent-foreground: oklch(0.96 0.03 295);
   --destructive: oklch(0.72 0.19 22);
-  --border: oklch(0.82 0.12 205 / 22%);
-  --input: oklch(0.82 0.12 205 / 26%);
+  --border: oklch(0.82 0.12 205 / 46%);
+  --input: oklch(0.82 0.12 205 / 46%);
   --ring: oklch(0.82 0.14 205);
   --glow: oklch(0.82 0.14 205 / 35%);
   --chart-1: oklch(0.82 0.14 205);
@@ -36,7 +36,7 @@ Source: design choice of change `futuristic-dashboard-ui`, 2026-11-17 (dark neon
   --sidebar-primary-foreground: oklch(0.15 0.03 265);
   --sidebar-accent: oklch(0.3 0.1 295);
   --sidebar-accent-foreground: oklch(0.96 0.03 295);
-  --sidebar-border: oklch(0.82 0.12 205 / 22%);
+  --sidebar-border: oklch(0.82 0.12 205 / 46%);
   --sidebar-ring: oklch(0.82 0.14 205);
 }
 
@@ -47,4 +47,28 @@ Source: design choice of change `futuristic-dashboard-ui`, 2026-11-17 (dark neon
 
 `bg-cosmic` is now `linear-gradient(to bottom, var(--background), var(--card), var(--background))`, so it follows the theme.
 
-Contrast measurements are added in Phase 3 (`## Measured contrast`); values above are the Phase 1 starting values.
+Values above are final: Phase 3 measured them (`## Measured contrast`) and raised `--border`, `--input` and `--sidebar-border` to 46% alpha.
+
+
+## Measured contrast
+
+Measured 2026-11-17 on the final `.dark` values (OKLCH converted to sRGB, WCAG 2.x relative luminance; translucent borders composited over the surface they sit on). Targets: text 4.5:1 or better, ring and border 3:1 or better.
+
+| Pair | Ratio | Target | Result |
+| --- | --- | --- | --- |
+| foreground on background | 17.76 | 4.5 | pass |
+| foreground on card | 16.49 | 4.5 | pass |
+| muted-foreground on background | 8.65 | 4.5 | pass |
+| muted-foreground on card | 8.04 | 4.5 | pass |
+| primary-foreground on primary | 11.84 | 4.5 | pass |
+| destructive text on card (`Alert` destructive; replaces the carried 3.97:1 light-mode figure for the dark default) | 6.62 | 4.5 | pass |
+| destructive text on background | 7.13 | 4.5 | pass |
+| secondary-foreground on secondary (`Badge`) | 12.71 | 4.5 | pass |
+| accent-foreground on accent (current list item) | 12.45 | 4.5 | pass |
+| ring on background | 11.98 | 3 | pass |
+| ring on card | 11.13 | 3 | pass |
+| border (46%) on background | 3.20 | 3 | pass |
+| border (46%) on card | 3.23 | 3 | pass |
+| input (46%) on card | 3.23 | 3 | pass |
+
+Adjustment made: `--border`, `--input` and `--sidebar-border` started at 22% to 26% alpha and measured 1.57:1 to 1.84:1. They were raised to 46%, the lowest round value that clears 3:1 on both surfaces. The light-mode `:root` destructive pair is not measured here because light mode is not reachable (dark is the default and there is no toggle).

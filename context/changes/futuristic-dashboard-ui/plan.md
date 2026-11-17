@@ -273,30 +273,30 @@ No data or database change. The only global effect is `class="dark"` on `<html>`
 
 #### Automated
 
-- [x] 2.1 Linting passes: `npm run lint`
-- [x] 2.2 Type check passes with 0 errors: `npx astro check`
-- [x] 2.3 Build passes: `npm run build`
-- [x] 2.4 No literals in the three dashboard view files: `node scripts/scan-dashboard-literals.mjs`
-- [x] 2.5 Smoke passes with unchanged text assertions: `npm run smoke`
+- [x] 2.1 Linting passes: `npm run lint` — d52b65b
+- [x] 2.2 Type check passes with 0 errors: `npx astro check` — d52b65b
+- [x] 2.3 Build passes: `npm run build` — d52b65b
+- [x] 2.4 No literals in the three dashboard view files: `node scripts/scan-dashboard-literals.mjs` — d52b65b
+- [x] 2.5 Smoke passes with unchanged text assertions: `npm run smoke` — d52b65b
 
 #### Manual
 
-- [x] 2.6 Markers look like badges and error messages look like alerts, all from the shared components; the page card and the current decision show the glow.
-- [x] 2.7 Tab key focus shows a visible cyan ring on every control, including the anchor controls.
+- [x] 2.6 Markers look like badges and error messages look like alerts, all from the shared components; the page card and the current decision show the glow. — d52b65b
+- [x] 2.7 Tab key focus shows a visible cyan ring on every control, including the anchor controls. — d52b65b
 
 ### Phase 3: States, contrast, gate and rule
 
 #### Automated
 
-- [ ] 3.1 Linting passes: `npm run lint`
-- [ ] 3.2 Type check passes with 0 errors: `npx astro check`
-- [ ] 3.3 Build passes: `npm run build`
-- [ ] 3.4 No literals in the three dashboard view files: `node scripts/scan-dashboard-literals.mjs`
-- [ ] 3.5 Smoke passes: `npm run smoke`
+- [x] 3.1 Linting passes: `npm run lint` — PENDINGSHA
+- [x] 3.2 Type check passes with 0 errors: `npx astro check` — PENDINGSHA
+- [x] 3.3 Build passes: `npm run build` — PENDINGSHA
+- [x] 3.4 No literals in the three dashboard view files: `node scripts/scan-dashboard-literals.mjs` — PENDINGSHA
+- [x] 3.5 Smoke passes: `npm run smoke` — PENDINGSHA
 
 #### Manual
 
-- [ ] 3.6 `/dev/dashboard-states` shows default, hover, focus-visible, disabled, error, empty and load error, with `loading` marked N/A with a reason.
-- [ ] 3.7 The measured contrast ratios for the listed pairs meet the targets and are recorded in `tokens.md`.
-- [ ] 3.8 Screenshots at desktop and mobile width show no horizontal overflow for `/dashboard`, `/dev/dashboard-states` and `/auth/signin`.
-- [ ] 3.9 `AGENTS.md` names the token and glow locations, the default dark class and the new components.
+- [x] 3.6 `/dev/dashboard-states` shows default, hover, focus-visible, disabled, error, empty and load error, with `loading` marked N/A with a reason. — PENDINGSHA
+- [x] 3.7 The measured contrast ratios for the listed pairs meet the targets and are recorded in `tokens.md`. — PENDINGSHA
+- [x] 3.8 Screenshots at desktop and mobile width show no horizontal overflow for `/dashboard`, `/dev/dashboard-states` and `/auth/signin`. — PENDINGSHA
+- [x] 3.9 `AGENTS.md` names the token and glow locations, the default dark class and the new components. — PENDINGSHA
