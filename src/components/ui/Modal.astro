@@ -1,0 +1,104 @@
+---
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  id: string;
+  title: string;
+  /** Opens as a modal on load (the delete confirmation). Also renders `open`, so it shows without JavaScript. */
+  autoOpen?: boolean;
+  /** Reopens after a form inside it is submitted and the page reloads without an error. */
+  keepOpen?: boolean;
+  /** State sink only: renders the dialog open and inline, with no script behaviour. */
+  preview?: boolean;
+}
+
+const { id, title, autoOpen = false, keepOpen = false, preview = false } = Astro.props;
+---
+
+<dialog
+  id={id}
+  aria-labelledby={`${id}-title`}
+  open={preview || autoOpen}
+  data-auto-open={autoOpen && !preview ? "" : undefined}
+  data-keep-open={keepOpen ? "" : undefined}
+  class:list={cn(
+    "m-auto max-h-11/12 w-11/12 max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-0 text-card-foreground shadow-glow backdrop:bg-background/80 backdrop:backdrop-blur-sm",
+    preview && "static my-4",
+  )}
+>
+  <div class="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
+    <h2 id={`${id}-title`} class="text-lg font-semibold text-foreground">
+      {title}
+    </h2>
+    <Button type="button" variant="ghost" size="icon" data-dialog-close aria-label="Close">
+      &times;
+    </Button>
+  </div>
+  <div class="space-y-4 p-4">
+    <slot />
+  </div>
+</dialog>
+
+<script>
+  const REOPEN_KEY = "reopen-dialog";
+
+  function dialogById(id: string): HTMLDialogElement | null {
+    const element = document.getElementById(id);
+    return element instanceof HTMLDialogElement ? element : null;
+  }
+
+  // The browser focuses the first focusable control, which is the close button; a control marked
+  // data-autofocus (the first field, or the safe button of a confirmation) takes focus instead.
+  function showAndFocus(dialog: HTMLDialogElement) {
+    dialog.showModal();
+    dialog.querySelector<HTMLElement>("[data-autofocus]")?.focus();
+  }
+
+  // A dialog rendered with `open` is non-modal; showModal() throws on it, so drop the attribute first.
+  function openModal(dialog: HTMLDialogElement) {
+    dialog.removeAttribute("open");
+    showAndFocus(dialog);
+  }
+
+  let pressedOnBackdrop = false;
+
+  document.addEventListener("pointerdown", (event) => {
+    pressedOnBackdrop = event.target instanceof HTMLDialogElement;
+  });
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    const opener = target.closest<HTMLElement>("[data-dialog-open]");
+    if (opener) {
+      const dialog = dialogById(opener.dataset.dialogOpen ?? "");
+      if (dialog && !dialog.open) showAndFocus(dialog);
+      return;
+    }
+
+    const closer = target.closest("[data-dialog-close]");
+    if (closer) {
+      closer.closest("dialog")?.close();
+      return;
+    }
+
+    // The dialog has no padding, so a click on the element itself is a click on the backdrop.
+    if (target instanceof HTMLDialogElement && pressedOnBackdrop) target.close();
+  });
+
+  document.addEventListener("submit", (event) => {
+    const dialog = event.target instanceof HTMLFormElement ? event.target.closest("dialog[data-keep-open]") : null;
+    if (dialog) sessionStorage.setItem(REOPEN_KEY, dialog.id);
+  });
+
+  const reopenId = sessionStorage.getItem(REOPEN_KEY);
+  sessionStorage.removeItem(REOPEN_KEY);
+  if (reopenId && !new URL(window.location.href).searchParams.has("error")) {
+    const dialog = dialogById(reopenId);
+    if (dialog) openModal(dialog);
+  }
+
+  document.querySelectorAll<HTMLDialogElement>("dialog[data-auto-open]").forEach(openModal);
+</script>

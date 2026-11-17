@@ -44,9 +44,11 @@ async function request(path, { method = "GET", form, cookieJar = ownerJar } = {}
 }
 
 const TABLE_HEADING = ">Decision table<";
-const MANAGE_HEADING = ">Manage options and criteria<";
+const MANAGE_HEADING = ">Manage options<";
+// The first dialog in the page ends the visible sections (table, tie-breaker); dialogs are rendered after them.
+const DIALOGS_START = "<dialog";
 
-// Option and criterion ids live in the manage forms below the table, so the search starts at that heading.
+// Option and criterion ids live in the manage dialogs below the table, so the search starts at the options dialog title.
 // The table above lists the same names but has no `name="id"` field.
 function hiddenIdAfter(body, marker) {
   const manageFrom = body.indexOf(MANAGE_HEADING);
@@ -60,17 +62,17 @@ function hiddenIdAfter(body, marker) {
 
 const TIE_HEADING = ">Tie-breaker<";
 
-// Table assertions look only at the table section: from its heading up to the tie-breaker or manage heading.
+// Table assertions look only at the table section: from its heading up to the tie-breaker or the first dialog.
 function tableOnly(page) {
   const from = page.body.indexOf(TABLE_HEADING);
-  const ends = [page.body.indexOf(TIE_HEADING), page.body.indexOf(MANAGE_HEADING)].filter((index) => index > from);
+  const ends = [page.body.indexOf(TIE_HEADING), page.body.indexOf(DIALOGS_START)].filter((index) => index > from);
   return { ...page, body: from === -1 ? "" : page.body.slice(from, ends.length ? Math.min(...ends) : undefined) };
 }
 
-// The tie-breaker section: from its heading up to the manage heading; empty when the section is not rendered.
+// The tie-breaker section: from its heading up to the first dialog; empty when the section is not rendered.
 function tieBreakerOnly(page) {
   const from = page.body.indexOf(TIE_HEADING);
-  const to = page.body.indexOf(MANAGE_HEADING);
+  const to = page.body.indexOf(DIALOGS_START);
   return { ...page, body: from === -1 ? "" : page.body.slice(from, to === -1 ? undefined : to) };
 }
 
@@ -777,6 +779,40 @@ const steps = [
     "the other decision shows only its own options",
     () => request(`/dashboard?decision=${betaId}`, { cookieJar: flowJar }),
     { status: 200, bodyIncludes: ["Beta decision", "BetaOption"], bodyExcludes: ["AlphaOption", "Decision not found"] },
+  ],
+  [
+    "decisions render as tiles that link to each decision",
+    () => request(`/dashboard?decision=${alphaId}`, { cookieJar: flowJar }),
+    () => ({
+      status: 200,
+      bodyIncludes: [
+        `href="/dashboard?decision=${alphaId}"`,
+        `href="/dashboard?decision=${betaId}"`,
+        "aspect-square",
+        'data-dialog-open="dialog-new-decision"',
+      ],
+    }),
+  ],
+  [
+    "editing dialogs are in the page, the delete confirmation is not",
+    () => request(`/dashboard?decision=${alphaId}`, { cookieJar: flowJar }),
+    {
+      status: 200,
+      bodyIncludes: [
+        'id="dialog-new-decision"',
+        'id="dialog-edit-decision"',
+        'id="dialog-options"',
+        'id="dialog-criteria"',
+        ">Manage options<",
+        ">Manage criteria<",
+      ],
+      bodyExcludes: ['id="dialog-confirm-delete"'],
+    },
+  ],
+  [
+    "the delete confirmation is a dialog that opens on load",
+    () => request(`/dashboard?decision=${alphaId}&confirm=delete`, { cookieJar: flowJar }),
+    { status: 200, bodyIncludes: ['id="dialog-confirm-delete"', "data-auto-open"] },
   ],
   [
     "unknown decision id falls back to the newest decision with a message",

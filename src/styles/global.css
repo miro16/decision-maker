@@ -128,4 +128,8 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* A modal dialog locks the page scroll behind it. */
+  html:has(dialog:modal) {
+    overflow: hidden;
+  }
 }
